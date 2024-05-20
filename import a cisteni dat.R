@@ -1,16 +1,15 @@
-library(dplyr)
+library(dplyr) # data transformation https://nyu-cdsc.github.io/learningr/assets/data-transformation.pdf, https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf
 library(openxlsx) # práce s xlsx soubory, read.xlsx ()
-# library(reschola)
 library(tidyr) # transformace dat do tidy formátu https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf , drop_na()
-library(janitor) # čištění dat, clean_names()
-# library(stringr) # práce s textovýmni proměnnými
-library(lubridate) # úprava datumů
+library(lubridate) # úprava datumů https://rstudio.github.io/cheatsheets/lubridate.pdf 
+library(janitor) # čištění dat, clean_names() 
 library(RCzechia) # využívá se hlavně pro tvrobu map, obsahuje szenam obcí, orp, krajů 
 library(skimr) # souhrnné statistiky  
 library(stats)
+# library(stringr) # práce s textovýmni proměnnými
+# library(reschola)
 
-
-# při používání projektů se nám ve výchozím nastavení soubory načítají a ukládají do složky s projektem
+# při načtení projektů se nám ve výchozím nastavení soubory načítají a ukládají do složky s projektem, můžeme ověřit pomocí 
 
 getwd()
 
@@ -25,7 +24,6 @@ d <- read.csv2("data/input/cvicny_dataset.csv", header = TRUE, sep = ";", na.str
 
 
 # načítám dataset ve formtá xlsx - funkce z balíčku openxls
-
 d2 <- read.xlsx("data/input/cvicny_dataset.xlsx", na.strings = c("", "NA")) # pokud máme více listů načítá se automaticky 1., pokud chceme jiný potřeba definovat 
 d2 <- read.xlsx("data/input/cvicny_dataset.xlsx", sheet = "vsichni", na.strings = c("", "NA"))
 
@@ -40,7 +38,7 @@ rm(d2, d3)
 
 
 
-# klávesové zkratky -------------------------------------------------------
+# vybrané užitečné klávesové zkratky -------------------------------------------------------
 
 # zobrazí klávesové zkratky                     Alt + Shift + k 
 # zobrazí nápovědu u funkcí                     F1 
@@ -107,6 +105,11 @@ d5 <- d %>%
   filter(!is.na(datum_narozeni))
 
 
+# ÚKOLY 
+# 1. zjisti, kolik chybějících hodnot je v proměnné pohlavi v tomto datasetu
+# 2. Načti si do R  cvičně další csv a xlsx soubor
+
+
 
 # počty chybějících hodnot v proměnných 
 # ve sloupcích
@@ -130,11 +133,13 @@ d <- d %>%
 
 # duplikáty podle ID
 duplikaty <- d %>% 
-  get_dupes(id)
+  get_dupes(id) %>% 
+  distinct(id)
 
 duplikaty2 <- d %>%
   group_by(id) %>%
   filter(n() > 1)
+
 
 # Odstranění úplných duplikátů 
 d <- distinct(d, .keep_all = TRUE)
@@ -144,6 +149,9 @@ d_jedinecne_orp <- distinct(d, orp, .keep_all = TRUE)
 
 rm(d1, d2, d3, d4, d5, na_counts_df, resp_s_na, duplikaty, duplikaty2, d_jedinecne_orp)
 
+
+# ÚKOLY 
+# 1. Zjisti, která orp se v datasetu opakují 
 
 
 
@@ -202,6 +210,11 @@ d <- d %>%
 # d$rok1 <- as.numeric(substr(d$datum_narozeni, start = 7, stop = 10))
 
 
+# ÚKOLY
+# 1. vytvoř novou proměnnou vzdelani_f2 která bude mít hodnoty v tomto pořadí SŠ, ZŠ, VŠ
+# 2. vytvoř novou proměnno, která bude mít hodnoty u pohlaví žena a muž 
+# 3. zjisti jakou třídu (class) má proměnná id 
+
 
 
 # přejmenování a rozdělování a spojování buněk ----------------------------
@@ -233,6 +246,9 @@ class(d$obvykla_delka_spanku)
 d$obvykla_delka_spanku <- as.numeric(gsub(",", ".", d$obvykla_delka_spanku))
 
 
+# ÚKOLy
+# 1. přejmenuj proměnnou id na id_respondenta
+# 2. udělej dichotomickou proměnnou vzdelani_ss s hodnotami 0 a 1 (1 pokud má SŠ vzdělání)
 
 
 # funkce filter a select --------------------------------------------------
@@ -246,6 +262,8 @@ zeny <- d %>%
 ne_muzi <- d %>% 
   filter(pohlavi != "muži")
 
+d$id <- as.numeric(d$id)
+
 # čísla nejsou v uvozovkách
 vybrane_id <- d %>% 
   filter(id == 10 )
@@ -258,6 +276,17 @@ vybrana_id <- d %>%
 vybrana_id2 <- d %>% 
   filter(!id %in%c(5:8))
 
+
+# kombiance parametrů
+vybrana_id3 <- d %>% 
+  filter(id !=10 & vzdelani_3kat %in% c("ZŠ", "SŠ"))
+
+# kombiance parametrů
+vybrana_id4 <- d %>%
+  filter(vek %in% c(30:40) & pohlavi == "ženy")
+
+# vybrana_id5 <- d %>%
+#   filter(vek <= 40 & vek >= 30 & pohlavi == "ženy")
 
 # select pro výběr proměnných
 d_vyber <- d %>% 
@@ -282,10 +311,14 @@ d <- d %>%
 rm(d_vyber, d_vyber2, d_vyber3, zeny, ne_muzi, vybrane_id, vybrana_id, vybrana_id2)
 
 
+# ÚKOLY 
+# 1. vyber z datasetu proměnné začínající na písmeno o
+# 2. vyfiltruj respondenta s id 12 
+# 3 vyber z datasetu jen proměnné které jsou číselné (is.numeric)
+
 
 
 # souhrnné a číselné statistiky -------------------------------------------
-
 
 summary(d$obvykla_delka_spanku)
 
@@ -297,8 +330,12 @@ sum(d$obvykla_delka_spanku, na.rm = TRUE)
 
 
 spanek <- d %>%
-  group_by(vzdelani_3kat, pohlavi) %>%
+  group_by(vzdelani_3kat) %>%
   summarize(mean_spanek = round(mean(obvykla_delka_spanku, na.rm = TRUE), digits = 2))
+
+# ÚKOLY 
+# 1. jaký je nejstarší a nejmladší účastník? Kolik je jim let? 
+# 2. jaký je medián hodin spánku pro ženy? 
 
 
 
@@ -312,11 +349,23 @@ d <- d %>%
 d$prijmeni <- sort(d$prijmeni, decreasing = FALSE)
 
 
+# ÚKOLY 
+# 1. Seřaď respondenty podle hodin spánku od nejméně po nejvíce
+# 2. Seřaď datset abecedně podle ORP od konce abecedy
+
+
 # změna pořadí proměnných v dataframu-------------------------------------------------
 
 d <- d %>%
   relocate(vek, .after = datum_narozeni) %>%
   relocate(orp, .before = last_col())
+
+
+# ÚKOLY 
+# 1. smaž dataset spánek z global environment
+# 2. Umísti proměnnou vzdělání vš za proměnnou vzdelani_3kat 
+# 3. Seřaď responendty podle dne narozeni vzestupně 
+
 
 
 # ukládání dat ------------------------------------------------------------
@@ -325,7 +374,6 @@ saveRDS(d, "data/processed/dataset_clean.rds")
 
 write.xlsx(d, "data/processed/dataset_clean.xlsx")
 
-# write.csv(d, "data/processed/dataset_clean.csv", fileEncoding = "UTF-8", row.names = FALSE)
 
 
 

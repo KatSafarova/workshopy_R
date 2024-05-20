@@ -1,0 +1,619 @@
+
+# Podkladová data pro statistiky, grafy a mapy pro analýzy pro kraje v rámci 
+# O:\sd_0475\Uprchlicka krize\Analyzy\MPSV\Mapovani a analyza kraju - 1. Q 2024
+
+# library(paqr)
+library(readr)
+library(dplyr)
+library(openxlsx)
+library(here)
+library(reschola)
+library(tidyr)
+library(janitor)
+# library(esquisse) 
+# esquisse::esquisser()
+
+
+# načtení dat  ------------------------------------------------------------
+
+# excel s počtem obyvatel upraven v excelu
+# d_raw_ukr <- read.xlsx("data/input/Statistika_obce_suk_vek_vse_21-04-2024.xlsx")
+cr_orp <- read.xlsx("data/intermediate/pocet_obyvatel_cr_leden_2024.xlsx", sheet = "ORP")
+cr_mc <- read.xlsx("data/intermediate/pocet_obyvatel_cr_leden_2024.xlsx", sheet = "mestske_casti")
+cr_obce <- read.xlsx("data/intermediate/pocet_obyvatel_cr_leden_2024.xlsx", sheet = "obce")
+zranitelni_brezen_2024 <- read.xlsx("data/input/zranitelni_brezen_2024.xlsx")
+# mop_led_un <- read.xlsx("data/intermediate/mop_data_prosinec_leden.xlsx", sheet = "data")
+# mop_leg <- read.xlsx("data/intermediate/mop_data_prosinec_leden.xlsx", sheet = "legenda")
+# kv_humpo <- read.xlsx("data/input/karlovarsky_humpo_24_01_2024.xlsx", sheet = "vsichni")
+# zranitelni_leden <- read.xlsx("data/input/zranitelne_osoby_hud_humpo_leden_2024.xlsx")
+# zadatele_hud_leden <- read.xlsx("data/input/zadatele_hud_leden_2024.xlsx") # celý leden, info i o HUMPO
+# humpo_leden <- read.xlsx("data/input/humpo_24_01_2024.xlsx") # info k 24. 1. 
+
+
+cr_orp <- clean_names(cr_orp)
+cr_mc <- clean_names(cr_mc)
+cr_obce <- clean_names(cr_obce)
+zranitelni_brezen_2024 <- clean_names(zranitelni_brezen_2024)
+
+humpo_leden <- clean_names(humpo_leden)
+mop_led_un <- clean_names(mop_led_un)
+zadatele_hud_leden <- clean_names(zadatele_hud_leden)
+
+
+
+
+humpo_leden <- humpo_leden %>% 
+  rename(kraj = ubytovani_nazev_kraj_ruian,
+         orp = ubytovani_nazev_orpruian)
+
+humpo_leden <- humpo_leden %>% 
+  mutate(orp = ifelse(orp == "Hlavní město Praha", "Praha", orp))
+
+zadatele_hud_leden <- zadatele_hud_leden %>% 
+  rename(kraj = kraj_nazev,
+         orp = orp_nazev)
+
+# TODO
+# doplnit chybějící kraje z okresů 
+zadatele_hud_leden <- zadatele_hud_leden %>%
+  mutate(orp = ifelse(orp == "Hlavní město Praha", "Praha", orp), 
+         hud_castka = as.numeric(hud_castka),
+         hud_zaplaceno = as.numeric(hud_zaplaceno),
+         kraj =  ifelse(is.na(kraj), "neurčeno", kraj),
+         orp =  ifelse(is.na(orp), "neurčeno", orp))
+
+
+# ostatní -----------------------------------------------------------------
+
+# Získání aktuálního data a času
+aktualni_datum_cas <- format(Sys.time(), format = "%d-%m-%Y")
+# writexl::write_xlsx(paste0("pecujici_vstupni_",  aktualni_datum_cas, ".xlsx"))
+
+# nutné vždy aktualizovat 
+datum_pocty_ze_dne <- "_25-02-2024"
+obce_prevodnik <- read.xlsx("data/input/prevodnik_obec_orp_okres_kraj_kopie.xlsx")
+
+obce_prevodnik <-clean_names(obce_prevodnik)
+
+
+# celkové úpravy ------------------------------------------------------------------
+
+
+colnames(d_raw_ukr)
+
+d <- d_raw_ukr %>% filter(!is.na(kraj))
+
+d <- d %>% 
+  mutate(vek_0_2 = m_do_3 + z_do_3 + x_do_3,
+         vek_3_5 = m_do_6 + z_do_6 + x_do_6,
+         vek_6_14 = m_do_15 + z_do_15 + x_do_15,
+         vek_15_17 = m_do_18 + z_do_18 + x_do_18,
+         vek_3_14 = vek_3_5 + vek_6_14,
+         vek_3_17 = vek_3_5 + vek_6_14 + vek_15_17,
+         vek_6_17 = vek_6_14 + vek_15_17,
+         vek_0_17 = vek_0_2 + vek_3_5 + vek_6_14 + vek_15_17,
+         vek_0_14 = vek_0_2 + vek_3_5 + vek_6_14,
+         dospeli = m_do_65 + z_do_65 + x_do_65,
+         seniori = m_sen + z_sen + x_sen,
+         zeny_18plus = z_do_65 + z_sen,
+         muzi_18plus = m_do_65 + m_sen,
+         pohlavi_neurceno_18plus = x_do_65 + x_sen) %>% 
+  rename(celkem_uprchliku = celkem)
+
+# možné věkové kategorie vek_kat6
+# věk 0 až 2 roky
+# vek 3 až 5 let
+# věk 6 až 14 let
+# věk 15 až 17 let
+# věk 18 až 65 let
+# věk 65 a více let
+
+
+
+d <- d %>% 
+  left_join(., obce_prevodnik, by = c("kod_obce"="cisob")) %>% 
+  mutate(NUTS2 = case_when(
+    kraj == "Hlavní město Praha" ~ "Hlavní město Praha", 
+    kraj %in% c("Jihomoravský kraj", "Kraj Vysočina") ~ "Jihovýchod", 
+    kraj %in% c("Jihočeský kraj", "Plzeňský kraj") ~ "Jihozápad", 
+    kraj %in% c("Moravskoslezský kraj") ~ "Moravskoslezsko", 
+    kraj %in% c("Pardubický kraj", "Královéhradecký kraj", "Liberecký kraj") ~ "Severovýchod", 
+    kraj %in% c("Karlovarský kraj", "Ústecký kraj") ~ "Severozápad", 
+    kraj %in% c("Středočeský kraj") ~ "Střední Čechy", 
+    kraj %in% c("Olomoucký kraj", "Zlínský kraj") ~ "Střední Morava"
+  ),
+  kraj = factor(kraj, levels = c("Hlavní město Praha", "Středočeský kraj", "Jihočeský kraj", 
+                                       "Plzeňský kraj", "Karlovarský kraj", "Ústecký kraj", 
+                                       "Liberecký kraj", "Královéhradecký kraj", "Pardubický kraj", 
+                                       "Kraj Vysočina", "Jihomoravský kraj", "Olomoucký kraj", 
+                                       "Zlínský kraj", "Moravskoslezský kraj"))
+  )
+
+d <- d %>% select(-nazob, -okres_nazev, -kraj_nazev) %>% 
+  rename(orp = nazorp)
+
+cr_obce <- cr_obce %>%
+  mutate(
+    kraj = case_when(
+      kraj == "Středočeský" ~ "Středočeský kraj",
+      kraj == "Jihočeský" ~ "Jihočeský kraj",
+      kraj == "Plzeňský" ~ "Plzeňský kraj",
+      kraj == "Karlovarský" ~ "Karlovarský kraj",
+      kraj == "Ústecký" ~ "Ústecký kraj",
+      kraj == "Liberecký" ~ "Liberecký kraj",
+      kraj == "Královéhradecký" ~ "Královéhradecký kraj",
+      kraj == "Pardubický" ~ "Pardubický kraj",
+      kraj == "Jihomoravský" ~ "Jihomoravský kraj",
+      kraj == "Olomoucký" ~ "Olomoucký kraj",
+      kraj == "Zlínský" ~ "Zlínský kraj",
+      kraj == "Moravskoslezský" ~ "Moravskoslezský kraj",
+      TRUE ~ kraj
+    )
+  )
+
+
+table(cr_obce$kraj)
+
+
+# kraje -------------------------------------------------------------------
+
+
+# MOP KRAJE ---------------------------------------------------------------
+
+# 
+# mop_led_un <- mop_led_un %>% 
+#   mutate(kraj = factor(kraj), levels= c("Hlavní město Praha", "Středočeský kraj", "Jihočeský kraj", 
+#                                                 "Plzeňský kraj", "Karlovarský kraj", "Ústecký kraj", 
+#                                                 "Liberecký kraj", "Královéhradecký kraj", "Pardubický kraj", 
+#                                                 "Kraj Vysočina", "Jihomoravský kraj", "Olomoucký kraj", 
+#                                                 "Zlínský kraj", "Moravskoslezský kraj")) 
+
+mop_led_un$kraj <- factor(mop_led_un$kraj)
+
+mop_kraje_suma <- mop_led_un %>% 
+  group_by(kraj) %>%
+  summarize(celkem_zadosti = length(podana),
+            priznanych_zadosti = sum(stav == "priznana"),
+            nerozhodnutych_zadosti  = sum(stav == "nerozhodnuta"),
+            nepriznanych_zadosti = sum(stav == "nepriznana"),
+            celkova_vyse = sum(davka_prizn_castka))
+
+
+# odstranění zbytečných vars, které by se při napojení dublovaly
+cr_obce1 <- cr_obce %>%
+  select(-orp, -kod_obce, -obec)
+
+# součty pro kraje - uprchlíci
+d_kraje <- d %>% group_by(kraj) %>% 
+  summarise(celkem_uprchliku, vek_0_2, vek_3_5, vek_3_14, vek_6_14, vek_15_17, vek_0_17, vek_0_14, dospeli, 
+            seniori, zeny_18plus, muzi_18plus)
+
+# součty pro kraje - Češi (pracuju s obcemi asi proto, že obsahují všechny informace - i kraj i orp)
+cr_obce1 <- cr_obce1 %>% group_by(kraj) %>% 
+  summarize(muzi_cr = sum(muzi_cr), 
+            muzi_15plus_cr = sum(muzi_15plus_cr), 
+            zeny_cr = sum(zeny_cr),
+            zeny_15plus_cr = sum(zeny_15plus_cr),
+            celkem_obyvatel_cr = sum(celkem_obyvatel_cr),
+            celkem_15plus_cr = sum(celkem_15plus_cr),
+            celkem_0_14_cr = celkem_obyvatel_cr - celkem_15plus_cr)
+
+d_kraje_suma <- d_kraje %>%
+  group_by(kraj) %>%
+  summarize(celkem_uprchliku = sum(celkem_uprchliku),
+            vek_0_2 = sum(vek_0_2),
+            vek_3_5 = sum(vek_3_5),
+            vek_6_14 = sum(vek_6_14),
+            vek_3_14 = sum(vek_3_14),
+            vek_15_17 = sum(vek_15_17),
+            vek_0_17 = sum(vek_0_17),
+            vek_0_14 = sum(vek_0_14),
+            dospeli = sum(dospeli),
+            seniori = sum(seniori), 
+            zeny_18plus = sum(zeny_18plus),
+            muzi_18plus = sum(muzi_18plus))
+            
+d_kraje_humpo <- humpo_leden %>%
+  group_by(kraj) %>%
+  summarize(zranitelne = sum(osoba_zranitelna_osoba == "Ano"),
+            ocekavane = sum(osoba_zranitelna_osoba == "Očekávané"),
+            nezranitelne = sum(osoba_zranitelna_osoba == "Ne"),
+            zranitelni_a_ocekavani_podil = (zranitelne+ocekavane)/(zranitelne+nezranitelne+ocekavane),
+            zranitelni_podil = zranitelne/(zranitelne+nezranitelne+ocekavane),
+            celkem_ubytovanych = zranitelne + ocekavane + nezranitelne)
+
+
+zr <- zranitelni_brezen_2024 %>% 
+  rename(orp = orp_nazev,
+         kraj = kraj_nazev)
+
+ubytovny_humpo <- zr %>%
+  filter(zranitelna == "A") %>% 
+  filter(ma_humpo == "A") %>% 
+  filter(humpo_typ_ubytovani == "Ubytovna") %>% 
+  summarize(vek_0=sum(vek < 1, na.rm = TRUE),
+            vek_1 = sum(vek ==1, na.rm = TRUE),
+            vek_2 = sum(vek ==2, na.rm = TRUE),
+            vek_3 = sum(vek ==3, na.rm = TRUE),
+            vek_4 = sum(vek ==4, na.rm = TRUE),
+            vek_5 = sum(vek ==5, na.rm = TRUE),
+            vek_6 = sum(vek ==6, na.rm = TRUE),
+            deti_0_17 = sum(vek < 18, na.rm = TRUE),
+            ozp_vsichni = sum(invalidni  == "A", na.rm = TRUE),
+            ozp_do20 = sum(invalidni  == "A" & vek < 20, na.rm = TRUE),
+            ozp_20_40 = sum(invalidni  == "A" & vek > 19 & vek < 41, na.rm = TRUE),
+            ozp_41_50 = sum(invalidni  == "A" & vek > 40 & vek < 51, na.rm = TRUE),
+            ozp_51_60 = sum(invalidni  == "A" & vek > 50 & vek < 61, na.rm = TRUE),
+            ozp_61_70 = sum(invalidni  == "A" & vek > 60 & vek < 71, na.rm = TRUE),
+            ozp_70plus = sum(invalidni  == "A" & vek > 70, na.rm = TRUE),
+            seniori = sum(vek > 65, na.rm = TRUE))
+
+write.xlsx(ubytovny_humpo, paste0("data/processed/pocty_osob_ubytovny_humpo.xlsx"))
+
+
+ubytovny_humpo <- zr %>%
+  filter(zranitelna == "A") %>% 
+  filter(ma_humpo == "A") %>% 
+  filter(humpo_typ_ubytovani == "Ubytovna") %>% 
+  summarize(vek_0=sum(vek < 1, na.rm = TRUE),
+            vek_1 = sum(vek ==1, na.rm = TRUE),
+            vek_2 = sum(vek ==2, na.rm = TRUE),
+            vek_3 = sum(vek ==3, na.rm = TRUE),
+            vek_4 = sum(vek ==4, na.rm = TRUE),
+            vek_5 = sum(vek ==5, na.rm = TRUE),
+            vek_6 = sum(vek ==6, na.rm = TRUE),
+            deti_0_17 = sum(vek < 18, na.rm = TRUE),
+            ozp_vsichni = sum(invalidni  == "A", na.rm = TRUE),
+            ozp_do20 = sum(invalidni  == "A" & vek < 20, na.rm = TRUE),
+            ozp_20_40 = sum(invalidni  == "A" & vek > 19 & vek < 41, na.rm = TRUE),
+            ozp_41_50 = sum(invalidni  == "A" & vek > 40 & vek < 51, na.rm = TRUE),
+            ozp_51_60 = sum(invalidni  == "A" & vek > 50 & vek < 61, na.rm = TRUE),
+            ozp_61_70 = sum(invalidni  == "A" & vek > 60 & vek < 71, na.rm = TRUE),
+            ozp_70plus = sum(invalidni  == "A" & vek > 70, na.rm = TRUE),
+            seniori = sum(vek > 65, na.rm = TRUE))
+
+write.xlsx(ubytovny_humpo, paste0("data/processed/pocty_osob_ubytovny_humpo.xlsx"))
+
+
+# u nezranitelných není většinově kraj, dalo by se doplnit z okresu
+d_kraje_zr <- zr %>%
+  group_by(kraj) %>%
+  summarize(celkem_osob_zada = length(hud_zadost_cj),
+            celkem_osob_bez_nepriznanych = (celkem_osob_zada - sum(hud_nepriznano == "A", na.rm=TRUE)), 
+            zranitelne = sum(zranitelna == "A", na.rm = TRUE),
+            celkem_zadosti = sum(hud_zadatel == "A", na.rm = TRUE),
+            hud_zadosti_nepriznano = sum(hud_zadatel == "A" & hud_nepriznano == "A", na.rm = TRUE), 
+            hud_zadosti_nerozhodnuto = sum(hud_zadatel == "A" & is.na(cas_vyhodnoceni), na.rm = TRUE),
+            hud_zadosti_priznano = (celkem_zadosti - hud_zadosti_nepriznano - hud_zadosti_nerozhodnuto),
+            celkova_hud_castka = sum(hud_castka, na.rm = TRUE),
+            prumerna_castka_hud_zadost = celkova_hud_castka/celkem_zadosti,
+            prumerna_castka_hud_osoba = celkova_hud_castka/ celkem_osob_bez_nepriznanych ,
+            celkove_prijmy_cr = sum(prijmy_cr, na.rm=TRUE),
+            prijmy_cr_na_osobu = celkove_prijmy_cr/ celkem_osob_bez_nepriznanych,
+            celkove_prijmy_zahranici = sum(prijmy_zahr, na.rm =TRUE),
+            celkove_zahr_na_osobu = celkove_prijmy_zahranici/ celkem_osob_bez_nepriznanych,
+            celkove_prijmy = sum(prijmy_celkem, na.rm =TRUE),
+            celkove_prijmy_na_osobu = celkove_prijmy/ celkem_osob_bez_nepriznanych,
+            zeny = sum(hud_pohlavi == "F", na.rm = TRUE),
+            muzi = sum(hud_pohlavi == "M", na.rm = TRUE),
+            deti = sum(vek < 18, na.rm = TRUE),
+            dospeli = sum(vek > 17 & vek < 65, na.rm = TRUE),
+            seniori = sum(vek > 64, na.rm = TRUE),
+            hud_zaplaceno = sum(hud_zaplaceno, na.rm = TRUE),
+            humpo = sum(ma_humpo == "A", na.rm = TRUE),
+            ubytovny =sum(humpo_typ_ubytovani == "Ubytovna", na.rm = TRUE),
+            studenti = sum(student_cr == "A", na.rm = TRUE),
+            invalidni = sum(invalidni  == "A", na.rm = TRUE),
+            pecujici = sum(pecujici == "A", na.rm = TRUE),
+            tehotne = sum(tehotna == "A", na.rm = TRUE),
+            starsi_65 = sum(starsi_65 == "A", na.rm = TRUE),
+            mladsi_18 = sum(mladsi_18 == "A", na.rm = TRUE),
+            pece_6_let = sum(pece_6_let == "A", na.rm = TRUE),
+            vek_0_2 =sum(vek %in% c(0, 1, 2), na.rm = TRUE),
+            vek_3_5 =sum(vek > 2 & vek < 6, na.rm = TRUE),
+            vek_6_14 = sum(vek > 5 & vek < 15, na.rm = TRUE),
+            vek_15_17 = sum(vek > 14 & vek < 18, na.rm = TRUE),
+            vek_18_30 =sum(vek > 17 & vek < 31, na.rm = TRUE),
+            vek_31_50 =sum(vek > 30 & vek < 51, na.rm = TRUE),
+            vek_51_65 =sum(vek > 50 & vek < 65, na.rm = TRUE))
+
+
+sum(zr$hud_castka, na.rm=TRUE)
+d_cr_zr <- zr
+
+mean(d_cr_zr$hud_castka, na.rm = TRUE)
+  
+  summarize(celkem_osob_zada = length(hud_zadost_cj),
+            celkem_osob_bez_nepriznanych = (celkem_osob_zada - sum(hud_nepriznano == "A", na.rm=TRUE)), 
+            zranitelne = sum(zranitelna == "A", na.rm = TRUE),
+            celkem_zadosti = sum(hud_zadatel == "A", na.rm = TRUE),
+            hud_zadosti_nepriznano = sum(hud_zadatel == "A" & hud_nepriznano == "A", na.rm = TRUE), 
+            hud_zadosti_nerozhodnuto = sum(hud_zadatel == "A" & is.na(cas_vyhodnoceni), na.rm = TRUE),
+            hud_zadosti_priznano = (celkem_zadosti - hud_zadosti_nepriznano - hud_zadosti_nerozhodnuto),
+            celkova_hud_castka = sum(hud_castka, na.rm = TRUE),
+            prumerna_castka_hud_zadost = celkova_hud_castka/celkem_zadosti,
+            prumerna_castka_hud_osoba = celkova_hud_castka/ celkem_osob_bez_nepriznanych ,
+            celkove_prijmy_cr = sum(prijmy_cr, na.rm=TRUE),
+            prijmy_cr_na_osobu = celkove_prijmy_cr/ celkem_osob_bez_nepriznanych,
+            celkove_prijmy_zahranici = sum(prijmy_zahr, na.rm =TRUE),
+            celkove_zahr_na_osobu = celkove_prijmy_zahranici/ celkem_osob_bez_nepriznanych,
+            celkove_prijmy = sum(prijmy_celkem, na.rm =TRUE),
+            celkove_prijmy_na_osobu = celkove_prijmy/ celkem_osob_bez_nepriznanych,
+            zeny = sum(hud_pohlavi == "F", na.rm = TRUE),
+            muzi = sum(hud_pohlavi == "M", na.rm = TRUE),
+            deti = sum(vek < 18, na.rm = TRUE),
+            dospeli = sum(vek > 17 & vek < 65, na.rm = TRUE),
+            seniori = sum(vek > 64, na.rm = TRUE),
+            hud_zaplaceno = sum(hud_zaplaceno, na.rm = TRUE),
+            humpo = sum(ma_humpo == "A", na.rm = TRUE),
+            ubytovny =sum(humpo_typ_ubytovani == "Ubytovna", na.rm = TRUE),
+            studenti = sum(student_cr == "A", na.rm = TRUE),
+            invalidni = sum(invalidni  == "A", na.rm = TRUE),
+            pecujici = sum(pecujici == "A", na.rm = TRUE),
+            tehotne = sum(tehotna == "A", na.rm = TRUE),
+            starsi_65 = sum(starsi_65 == "A", na.rm = TRUE),
+            mladsi_18 = sum(mladsi_18 == "A", na.rm = TRUE),
+            pece_6_let = sum(pece_6_let == "A", na.rm = TRUE),
+            vek_0_2 =sum(vek %in% c(0, 1, 2), na.rm = TRUE),
+            vek_3_5 =sum(vek > 2 & vek < 6, na.rm = TRUE),
+            vek_6_14 = sum(vek > 5 & vek < 15, na.rm = TRUE),
+            vek_15_17 = sum(vek > 14 & vek < 18, na.rm = TRUE),
+            vek_18_30 =sum(vek > 17 & vek < 31, na.rm = TRUE),
+            vek_31_50 =sum(vek > 30 & vek < 51, na.rm = TRUE),
+            vek_51_65 =sum(vek > 50 & vek < 65, na.rm = TRUE))
+
+
+deti <- zr %>%
+  filter(zranitelna == "A") %>% 
+  summarize(vek_0=sum(vek < 1, na.rm = TRUE),
+            vek_1 = sum(vek ==1, na.rm = TRUE),
+            vek_2 = sum(vek ==2, na.rm = TRUE),
+            vek_3 = sum(vek ==3, na.rm = TRUE),
+            vek_4 = sum(vek ==4, na.rm = TRUE),
+            vek_5 = sum(vek ==5, na.rm = TRUE),
+            vek_6 = sum(vek ==6, na.rm = TRUE))
+
+write.xlsx(deti, paste0("data/processed/pocty_deti_0-6.xlsx"))
+
+
+
+
+# u nezranitelných není většinově kraj, dalo by se doplnit z okresu
+d_orp_zr <- zr %>%
+  group_by(orp) %>%
+  summarize(celkem_osob_zada = length(hud_zadost_cj),
+            celkem_osob_bez_nepriznanych = (celkem_osob_zada - sum(hud_nepriznano == "A", na.rm=TRUE)), 
+            zranitelne = sum(zranitelna == "A", na.rm = TRUE),
+            celkem_zadosti = sum(hud_zadatel == "A", na.rm = TRUE),
+            hud_zadosti_nepriznano = sum(hud_zadatel == "A" & hud_nepriznano == "A", na.rm = TRUE), 
+            hud_zadosti_nerozhodnuto = sum(hud_zadatel == "A" & is.na(cas_vyhodnoceni), na.rm = TRUE),
+            hud_zadosti_priznano = (celkem_zadosti - hud_zadosti_nepriznano - hud_zadosti_nerozhodnuto),
+            celkova_hud_castka = sum(hud_castka, na.rm = TRUE),
+            prumerna_castka_hud_zadost = celkova_hud_castka/celkem_zadosti,
+            prumerna_castka_hud_osoba = celkova_hud_castka/ celkem_osob_bez_nepriznanych ,
+            celkove_prijmy_cr = sum(prijmy_cr, na.rm=TRUE),
+            prijmy_cr_na_osobu = celkove_prijmy_cr/ celkem_osob_bez_nepriznanych,
+            celkove_prijmy_zahranici = sum(prijmy_zahr, na.rm =TRUE),
+            celkove_zahr_na_osobu = celkove_prijmy_zahranici/ celkem_osob_bez_nepriznanych,
+            celkove_prijmy = sum(prijmy_celkem, na.rm =TRUE),
+            celkove_prijmy_na_osobu = celkove_prijmy/ celkem_osob_bez_nepriznanych,
+            zeny = sum(hud_pohlavi == "F", na.rm = TRUE),
+            muzi = sum(hud_pohlavi == "M", na.rm = TRUE),
+            deti = sum(vek < 18, na.rm = TRUE),
+            dospeli = sum(vek > 17 & vek < 65, na.rm = TRUE),
+            seniori = sum(vek > 64, na.rm = TRUE),
+            hud_zaplaceno = sum(hud_zaplaceno, na.rm = TRUE),
+            humpo = sum(ma_humpo == "A", na.rm = TRUE),
+            ubytovny =sum(humpo_typ_ubytovani == "Ubytovna", na.rm = TRUE),
+            studenti = sum(student_cr == "A", na.rm = TRUE),
+            invalidni = sum(invalidni  == "A", na.rm = TRUE),
+            pecujici = sum(pecujici == "A", na.rm = TRUE),
+            tehotne = sum(tehotna == "A", na.rm = TRUE),
+            starsi_65 = sum(starsi_65 == "A", na.rm = TRUE),
+            mladsi_18 = sum(mladsi_18 == "A", na.rm = TRUE),
+            pece_6_let = sum(pece_6_let == "A", na.rm = TRUE),
+            vek_0_2 =sum(vek %in% c(0, 1, 2), na.rm = TRUE),
+            vek_3_5 =sum(vek > 2 & vek < 6, na.rm = TRUE),
+            vek_6_14 = sum(vek > 5 & vek < 15, na.rm = TRUE),
+            vek_15_17 = sum(vek > 14 & vek < 18, na.rm = TRUE),
+            vek_18_30 =sum(vek > 17 & vek < 31, na.rm = TRUE),
+            vek_31_50 =sum(vek > 30 & vek < 51, na.rm = TRUE),
+            vek_51_65 =sum(vek > 50 & vek < 65, na.rm = TRUE))
+
+
+d_kraje_suma <- d_kraje_suma %>% 
+  left_join(., cr_obce1, by = "kraj")
+
+
+d_kraje_suma <- d_kraje_suma %>% 
+  select(-zeny_15plus_cr, -muzi_15plus_cr)
+
+d_kraje_suma <- d_kraje_suma %>% 
+  mutate(podil_u_v_kraji_z_pop_v_kraji = round(celkem_uprchliku / celkem_obyvatel_cr * 100, 2),
+         podil_zen_18plus_u_v_kraji_z_dosp_u_v_kraji = round(zeny_18plus / (zeny_18plus + muzi_18plus) * 100, 2),
+         podil_senioru_v_kraji_z_u_v_kraji = round(seniori / celkem_uprchliku * 100, 2),
+         podil_3_5_v_kraji_z_u_v_kraji = round(vek_3_5 / celkem_uprchliku * 100, 2),
+         podil_6_14_v_kraji_z_u_v_kraji = round(vek_6_14 / celkem_uprchliku * 100, 2),
+         podil_15_17_v_krajie_z_u_v_kraji = round(vek_15_17 / celkem_uprchliku * 100, 2),
+         podil_deti_3_14_v_kraji_z_u_v_kraji = round(vek_3_14 / celkem_uprchliku * 100, 2),
+         podil_vsech_deti_v_kraji_z_u_v_kraji = round(vek_0_17 / celkem_uprchliku * 100, 2),
+         podil_0_14_v_kraji_z_0_14_cechu_v_kraji = round(vek_0_14 / celkem_0_14_cr * 100, 2))
+
+
+
+# orp ---------------------------------------------------------------------
+
+# odstranění zbytenčých vars, které by se při napojení dublovaly
+cr_obce2 <- cr_obce %>%
+  select(-kod_obce, -obec, -kraj)
+
+# součty pro orp - uprchlíci 
+d_orp <- d %>% group_by(orp, cisorp, kraj) %>% 
+  summarise(celkem_uprchliku, vek_0_2, vek_0_14, vek_3_5, vek_3_14, vek_6_14, vek_15_17, vek_0_17, dospeli, 
+            seniori, zeny_18plus, muzi_18plus)
+
+# součty pro orp - Češi (pracuju s obcemi asi proto, že obsahují všechny informace - i kraj a obec)
+cr_obce2 <- cr_obce2 %>% group_by(orp) %>% 
+  summarize(muzi_cr = sum(muzi_cr), 
+            muzi_15plus_cr = sum(muzi_15plus_cr), 
+            zeny_cr = sum(zeny_cr),
+            zeny_15plus_cr = sum(zeny_15plus_cr),
+            celkem_obyvatel_cr = sum(celkem_obyvatel_cr),
+            celkem_15plus_cr = sum(celkem_15plus_cr),
+            celkem_0_14_cr = celkem_obyvatel_cr - celkem_15plus_cr)
+
+d_orp_suma <- d_orp %>%
+  group_by(orp, cisorp, kraj) %>%
+  summarize(celkem_uprchliku = sum(celkem_uprchliku),
+            vek_0_2 = sum(vek_0_2),
+            vek_3_5 = sum(vek_3_5),
+            vek_6_14 = sum(vek_6_14),
+            vek_3_14 = sum(vek_3_14),
+            vek_15_17 = sum(vek_15_17),
+            vek_0_17 = sum(vek_0_17),
+            vek_0_14 = sum(vek_0_14),
+            dospeli = sum(dospeli),
+            seniori = sum(seniori), 
+            zeny_18plus = sum(zeny_18plus),
+            muzi_18plus = sum(muzi_18plus))
+
+
+d_orp_suma <- d_orp_suma %>% 
+  left_join(., cr_obce2, by = "orp")
+
+d_orp_suma <- d_orp_suma %>% 
+  select(-zeny_15plus_cr, -muzi_15plus_cr)
+
+d_orp_suma <- d_orp_suma %>% 
+  mutate(podil_u_v_orp_z_pop_orp = round(celkem_uprchliku / celkem_obyvatel_cr * 100, 2),
+         podil_zen_18plus_u_v_kraji_z_dosp_u_v_kraji = round(zeny_18plus / (zeny_18plus + muzi_18plus) * 100, 2),
+         podil_senioru_v_orp_z_u_v_orp = round(seniori / celkem_uprchliku * 100, 2),
+         podil_3_5_v_orp_z_u_v_orp = round(vek_3_5 / celkem_uprchliku * 100, 2),
+         podil_6_14_v_orp_z_u_v_orp = round(vek_6_14 / celkem_uprchliku * 100, 2),
+         podil_15_17_v_orp_z_u_v_orp = round(vek_15_17 / celkem_uprchliku * 100, 2),
+         podil_3_14_v_orp_z_u_v_orp = round(vek_3_14 / celkem_uprchliku * 100, 2),
+         podil_vsech_deti_v_orp_z_u_v_orp = round(vek_0_17 / celkem_uprchliku * 100, 2),
+         podil_0_14_v_orp_z_0_14_cechu_v_orp = round(vek_0_14 / celkem_0_14_cr * 100, 2))
+
+d_orp_humpo <- humpo_leden %>%
+  group_by(kraj, orp) %>%
+  summarize(zranitelne = sum(osoba_zranitelna_osoba == "Ano"),
+            ocekavane = sum(osoba_zranitelna_osoba == "Očekávané"),
+            nezranitelne = sum(osoba_zranitelna_osoba == "Ne"),
+            zranitelni_a_ocekavani_podil = (zranitelne+ocekavane)/(zranitelne+nezranitelne+ocekavane),
+            zranitelni_podil = zranitelne/(zranitelne+nezranitelne+ocekavane),
+            celkem_ubytovanych = zranitelne + ocekavane + nezranitelne)
+
+
+zr <-zranitelni_brezen_2024 %>% 
+  rename(orp = orp_nazev,
+         kraj = kraj_nazev)
+  
+
+
+# Městské části ------------------------------------------------------------
+
+# rm(cr_obce1, cr_obce2, d_kraje, d_kraje_suma, d_orp_suma, cr_orp, cr_obce, obce_prevodnik, d_raw_ukr)
+
+cr_mc_praha <- cr_mc %>% 
+  filter(kraj == "Hlavní město Praha")
+
+cr_mc_praha <- cr_mc_praha %>% 
+  mutate(obec_mc = ifelse(obec_mc == "Praha-Újezd u Průhonic", "Praha-Újezd", obec_mc)) %>% 
+  mutate(obec_mc = ifelse(obec_mc == "Praha-Nedvězí u Říčan", "Praha-Nedvězí", obec_mc))
+           
+
+
+# jen Praha 
+d_mc <- d %>%  
+  filter(obec == "Praha") %>% 
+  group_by(obec_mc, kod_obce) %>% 
+  summarise(celkem_uprchliku, vek_0_2, vek_0_14, vek_3_5, vek_3_14, vek_6_14, vek_15_17, vek_0_17, dospeli, 
+            seniori, zeny_18plus, muzi_18plus)
+
+# 57 částí 
+cr_mc_praha <- cr_mc_praha %>% 
+ group_by(obec_mc, mestska_cast) %>% 
+  summarize(muzi_cr = sum(muzi_cr), 
+            muzi_15plus_cr = sum(muzi_15plus_cr), 
+            zeny_cr = sum(zeny_cr),
+            zeny_15plus_cr = sum(zeny_15plus_cr),
+            celkem_obyvatel_cr = sum(celkem_obyvatel_cr),
+            celkem_15plus_cr = sum(celkem_15plus_cr),
+            celkem_0_14_cr = celkem_obyvatel_cr - celkem_15plus_cr)
+
+d_mc <- d_mc %>% 
+  select(-kod_obce)
+
+
+d_praha <- left_join(d_mc, cr_mc_praha, by="obec_mc")
+
+# d_mc_suma <- d_mc %>%
+#   group_by(obec_mc, mestska) %>%
+#   summarize(celkem_uprchliku = sum(celkem_uprchliku),
+#             vek_0_2 = sum(vek_0_2),
+#             vek_3_5 = sum(vek_3_5),
+#             vek_6_14 = sum(vek_6_14),
+#             vek_3_14 = sum(vek_3_14),
+#             vek_15_17 = sum(vek_15_17),
+#             vek_0_17 = sum(vek_0_17),
+#             vek_0_14 = sum(vek_0_14),
+#             dospeli = sum(dospeli),
+#             seniori = sum(seniori), 
+#             zeny_18plus = sum(zeny_18plus),
+#             muzi_18plus = sum(muzi_18plus))
+
+
+# 
+# 
+# d_mc_suma <- d_mc_suma %>% 
+#   left_join(., cr_obce3, by = "kod_obce")
+# 
+# d_mc_suma <- d_mc_suma %>% 
+#   select(-zeny_15plus_cr, -muzi_15plus_cr)
+
+
+
+
+d_praha <- d_praha %>% 
+  mutate(podil_u_v_mc_z_pop_v_mc = round(celkem_uprchliku / celkem_obyvatel_cr * 100, 2),
+         podil_zen_18plus_u_v_mc_z_dosp_u_v_mc = round(zeny_18plus / (zeny_18plus + muzi_18plus) * 100, 2),
+         podil_senioru_v_mc_z_u_v_mc = round(seniori / celkem_uprchliku * 100, 2),
+         podil_3_5_v_mc_z_u_v_mc = round(vek_3_5 / celkem_uprchliku * 100, 2),
+         podil_6_14_v_mc_z_u_v_mc = round(vek_6_14 / celkem_uprchliku * 100, 2),
+         podil_15_17_v_mc_z_u_v_mc = round(vek_15_17 / celkem_uprchliku * 100, 2),
+         podil_3_14_v_mc_z_u_v_mc = round(vek_3_14 / celkem_uprchliku * 100, 2),
+         podil_vsech_deti_v_mc_z_u_v_mc = round(vek_0_17 / celkem_uprchliku * 100, 2),
+         podil_0_14_v_mc_z_0_14_cechu_v_mc = round(vek_0_14 / celkem_0_14_cr * 100, 2))
+
+# ukládání ----------------------------------------------------------------
+
+write_processed_data(d_kraje_suma, paste0("pocty_uprchliku_kraje", datum_pocty_ze_dne))
+write_processed_data(d_orp_suma, paste0("pocty_uprchliku_orp", datum_pocty_ze_dne))
+write_processed_data(d, paste0("pocty_vsechny_udaje", datum_pocty_ze_dne))
+write_processed_data(d_praha, paste0("Praha", datum_pocty_ze_dne))
+write_processed_data(mop_kraje_suma, "mop_kraje_prosinec_leden")
+write_processed_data(kv_humpo, "kv_humpo_leden")
+write_processed_data(zranitelni_brezen_2024, "zranitelni_brezen_2024")
+write_processed_data(d_orp_zr, "orp_zranitelni_brezen_2024")
+write_processed_data(d_kraje_zr, "kraje_zranitelni_brezen_2024")
+write_processed_data(d_orp_humpo, "orp_humpo_leden") # k 24. 1, včetně očekávaných zranitelných
+write_processed_data(d_kraje_humpo, "kraje_humpo_leden") # k 24. 1, včetně očekávaných zranitelných
+
+
+
+
+# možnost zapsat jako xlsx
+write.xlsx(d_kraje_suma, paste0("data/processed/pocty_uprchliku_kraje", datum_pocty_ze_dne, ".xlsx"))
+write.xlsx(d_orp_suma, paste0("data/processed/pocty_uprchliku_orp",  datum_pocty_ze_dne,  ".xlsx"))
+write.xlsx(d, paste0("data/processed/vsechny_udaje",  datum_pocty_ze_dne, ".xlsx"))
+write.xlsx(d_praha, paste0("data/processed/Praha", datum_pocty_ze_dne, ".xlsx"))
+write.xlsx(mop_kraje_suma,"data/processed/mop_kraje_prosinec_leden.xlsx")
+write.xlsx(zranitelni_brezen_2024, "data/processed/zranitelni_brezen_2024.xlsx")
+write.xlsx(d_orp_zr, "data/processed/orp_zranitelni_brezen_2024.xlsx")
+write.xlsx(d_kraje_zr, "data/processed/kraje_zranitelni_brezen_2024.xlsx")
+write.xlsx(d_orp_humpo, "data/processed/orp_humpo_leden.xlsx")
+write.xlsx(d_kraje_humpo, "data/processed/kraje_humpo_leden.xlsx")
+
+
+

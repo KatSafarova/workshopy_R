@@ -17,11 +17,9 @@ library(ggplot2)
 
 # načtení dat  -------------------------------------------------------------
 
-
-
 d <- readRDS("data/processed/dataset_clean.rds")
 
-# grafy - base ------------------------------------------------------------
+# základní grafy v base ------------------------------------------------------------
 
 # histogram ---------------------------------------------------------------
 
@@ -35,8 +33,7 @@ hist(d$obvykla_delka_spanku, col = "purple",
      ylab = "počet respondentů")
 
 
-# Vytvoření histogramu s rozdílnými kategoriemi
-
+# histogram s více kategoriemi
 ggplot(d %>% drop_na(obvykla_delka_spanku), aes(x = obvykla_delka_spanku, fill = vzdelani_3kat)) +
   geom_histogram(binwidth = 1, position = "dodge", alpha = 0.5) +
   labs(title = "Obyvklá délka spánku v hodinách",
@@ -58,10 +55,8 @@ ggplot(d %>% drop_na(obvykla_delka_spanku), aes(x = obvykla_delka_spanku, fill =
 x <- d$vek
 y <- d$obvykla_delka_spanku
 
-# scatterplot ---------------------------------------------------------------
 
-# Plot with main and axis titles
-# Change point shape (pch = 19) and remove frame.
+# scatterplot ---------------------------------------------------------------
 plot(x, y, main = "Vztah mezi věkem a počtem hodin spánku",
      xlab = "věk", ylab = "obvyklý počet hodin spánku",
      pch = 19, frame = FALSE)
@@ -76,8 +71,8 @@ plot(x, y, main = "Vztah mezi věkem a počtem hodin spánku",
 abline(lm(y ~ x, data = d), col = "darkgreen", lwd = 2)
 
 
-# barplot -----------------------------------------------------------------
 
+# barplot -----------------------------------------------------------------
 # Vypočteme průměrnou délku spánku pro každé pohlaví
 average_sleep <- tapply(d$obvykla_delka_spanku, d$pohlavi, mean, na.rm=TRUE)
 
@@ -91,11 +86,15 @@ barplot(average_sleep,
 
 
 # boxplot -----------------------------------------------------------------
-
-# Vytvoříme boxplot pomocí základních grafických funkcí
 boxplot(obvykla_delka_spanku ~ pohlavi, data = d,
         main = "Distribuce délky spánku podle pohlaví",
         xlab = "Pohlaví",
         ylab = "Délka spánku (hodiny)",
         col = c("blue", "red"),
         names = levels(d$pohlavi))
+
+
+# ggplot2  ----------------------------------------------------------------
+
+
+

@@ -1,4 +1,5 @@
 
+# načtení balíčků  --------------------------------------------------------
 
 library(dplyr)
 library(openxlsx) # práce s xlsx soubory, read.xlsx ()

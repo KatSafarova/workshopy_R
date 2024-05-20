@@ -1,3 +1,6 @@
+
+# načtení balíčků ---------------------------------------------------------
+
 library(dplyr) # data transformation https://nyu-cdsc.github.io/learningr/assets/data-transformation.pdf, https://www.rstudio.com/wp-content/uploads/2015/02/data-wrangling-cheatsheet.pdf
 library(openxlsx) # práce s xlsx soubory, read.xlsx ()
 library(tidyr) # transformace dat do tidy formátu https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf , drop_na()
@@ -6,8 +9,6 @@ library(janitor) # čištění dat, clean_names()
 library(RCzechia) # využívá se hlavně pro tvrobu map, obsahuje szenam obcí, orp, krajů 
 library(skimr) # souhrnné statistiky  
 library(stats)
-# library(stringr) # práce s textovýmni proměnnými
-# library(reschola)
 
 # při načtení projektů se nám ve výchozím nastavení soubory načítají a ukládají do složky s projektem, můžeme ověřit pomocí 
 

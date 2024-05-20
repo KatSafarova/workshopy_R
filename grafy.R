@@ -2,12 +2,7 @@
 
 library(dplyr)
 library(openxlsx) # práce s xlsx soubory, read.xlsx ()
-# library(reschola)
 library(tidyr) # transformace dat do tidy formátu https://github.com/rstudio/cheatsheets/blob/main/tidyr.pdf , drop_na()
-library(janitor) # čištění dat, clean_names()
-# library(stringr) # práce s textovýmni proměnnými
-library(lubridate) # úprava datumů
-library(RCzechia) # využívá se hlavně pro tvrobu map, obsahuje szenam obcí, orp, krajů 
 library(skimr) # souhrnné statistiky  
 library(stats)
 library(ggplot2)
@@ -33,7 +28,7 @@ hist(d$obvykla_delka_spanku, col = "purple",
      ylab = "počet respondentů")
 
 
-# histogram s více kategoriemi
+# histogram s více kategoriemi, vzdělání
 ggplot(d %>% drop_na(obvykla_delka_spanku), aes(x = obvykla_delka_spanku, fill = vzdelani_3kat)) +
   geom_histogram(binwidth = 1, position = "dodge", alpha = 0.5) +
   labs(title = "Obyvklá délka spánku v hodinách",
@@ -41,33 +36,37 @@ ggplot(d %>% drop_na(obvykla_delka_spanku), aes(x = obvykla_delka_spanku, fill =
        y = "počet respondentů",
        fill = "Vzdělání") +
   theme_minimal() +
-  scale_fill_manual(values = c("red", "blue", "green")) # Nastavení barev pro jednotlivé kategorie
+  scale_fill_manual(values = c("red", "#00BFFF", "green")) # Nastavení barev pro jednotlivé kategorie
 
+# https://www.klikzone.cz/sekce-html/html-barvy.php
+
+# histogram s více kategoriemi, pohlaví
 ggplot(d %>% drop_na(obvykla_delka_spanku), aes(x = obvykla_delka_spanku, fill = pohlavi)) +
-  geom_histogram(binwidth = 1, position = "dodge", alpha = 0.5) +
+  geom_histogram(binwidth = 1, position = "dodge", alpha = 0.9) +
   labs(title = "Obyvklá délka spánku v hodinách",
        x = "počet hodin",
        y = "počet respondentů",
        fill = "Vzdělání") +
-  theme_minimal() +
+  theme_bw () +
   scale_fill_manual(values = c("blue", "red")) # Nastavení barev pro jednotlivé kategorie
 
-x <- d$vek
-y <- d$obvykla_delka_spanku
 
 
 # scatterplot ---------------------------------------------------------------
+x <- d$vek
+y <- d$obvykla_delka_spanku
+
 plot(x, y, main = "Vztah mezi věkem a počtem hodin spánku",
      xlab = "věk", ylab = "obvyklý počet hodin spánku",
-     pch = 19, frame = FALSE)
+     pch = 21, frame = FALSE)
 
 # Definujte barvy pro každé pohlaví
-gender_colors <- c("muži" = "blue", "ženy" = "red") # Předpokládáme, že 'muž' bude modrý a 'žena' bude červená
+gender_colors <- c("muži" = "blue", "ženy" = "red") 
 
 # Použijte barvy podle pohlaví
 plot(x, y, main = "Vztah mezi věkem a počtem hodin spánku",
      xlab = "věk", ylab = "obvyklý počet hodin spánku",
-     pch = 19, frame = FALSE, col = gender_colors[d$pohlavi])
+     pch = 8, frame = TRUE, col = gender_colors[d$pohlavi])
 abline(lm(y ~ x, data = d), col = "darkgreen", lwd = 2)
 
 

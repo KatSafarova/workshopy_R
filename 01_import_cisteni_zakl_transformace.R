@@ -9,6 +9,8 @@ library(janitor) # čištění dat, clean_names()
 library(RCzechia) # využívá se hlavně pro tvrobu map, obsahuje szenam obcí, orp, krajů 
 library(skimr) # souhrnné statistiky  
 library(stats)
+library(tidyverse)
+library(datasets)
 
 # při načtení projektů se nám ve výchozím nastavení soubory načítají a ukládají do složky s projektem, můžeme ověřit pomocí 
 
@@ -57,8 +59,39 @@ rm(d2, d3)
 # názvy sekcí v kódu                            Ctrl + Shift + R
 # křížek pro komentování                        AltGr + X
 # zakomentování a odkomentování řádků           Ctrl + Shift + C
+# hranaté závorky []                            AltGr + F / AltGr + G
+# složené závorky []                            AltGr + B / AltGr + N
 
 
+# https://petrbouchal.xyz/eval2020/ klávesové zkratky
+
+
+
+# Proměnné a datové typy --------------------------------------------------
+
+# <- je znak přiřazení: vezmi, co je vpravo, a zapiš to do objektu vlevo
+
+x <- 3
+
+y <- 4
+
+z <- "text z" # text v uvozovkách = datový typ 'character' (text)
+
+a <- "12" # i cislo v uvozovkách je text
+
+rada <- 1:3 # x:y vytvoří řadu od x do y; proměnná obsahuje 3 prvky
+
+sada <- c(1, 4) # c() vytvoří proměnnou s více prvky
+
+x + y 
+x - y
+x / y
+x * y
+sqrt(x+y)
+
+class(d$ORP)
+is.character(d$ORP)
+is.numeric(d$id)
 
 # průzkum dat -------------------------------------------------------------
 
@@ -75,6 +108,12 @@ str(d)
 summary(d)
 
 skim(d)
+
+ncol(d)
+
+nrow(d)
+
+slice(d, c(1, 2, 8))
 
 
 
@@ -104,6 +143,9 @@ d4 <- d %>%
 
 d5 <- d %>% 
   filter(!is.na(datum_narozeni))
+
+# přeměna všech NA v dataframu na vybranou hodnotu - používat opatrně 
+# d[is.na(d)] <- 0
 
 
 # ÚKOLY 
@@ -231,12 +273,10 @@ d <- separate(d, jmenoprijmeni, into = c("jmeno", "prijmeni"), sep = " ",  remov
 d <- unite(d, jmeno_prijmeni, jmeno, prijmeni, sep = " ", remove = FALSE)
 
 
-# přejmenování 
-d <- d %>% 
-  rename(vzdelani_3kat = vzdelani_f)
+# přejmenování a nová proměnná na zákaldě hodnot jiné proměnné
 
-# nová proměnná na zákaldě hodnot jiné proměnné
 d <- d %>% 
+  rename(vzdelani_3kat = vzdelani_f) %>% 
   mutate(vzdelani_vs = ifelse(vzdelani_3kat == "VŠ", "Ano", "Ne"))
 
 
@@ -250,6 +290,7 @@ d$obvykla_delka_spanku <- as.numeric(gsub(",", ".", d$obvykla_delka_spanku))
 # ÚKOLy
 # 1. přejmenuj proměnnou id na id_respondenta
 # 2. udělej dichotomickou proměnnou vzdelani_ss s hodnotami 0 a 1 (1 pokud má SŠ vzdělání)
+
 
 
 # funkce filter a select --------------------------------------------------
@@ -319,6 +360,7 @@ rm(d_vyber, d_vyber2, d_vyber3, zeny, ne_muzi, vybrane_id, vybrana_id, vybrana_i
 
 
 
+
 # souhrnné a číselné statistiky -------------------------------------------
 
 summary(d$obvykla_delka_spanku)
@@ -338,7 +380,20 @@ spanek <- d %>%
 # 1. jaký je nejstarší a nejmladší účastník? Kolik je jim let? 
 # 2. jaký je medián hodin spánku pro ženy? 
 
+# unnest ------------------------------------------------------------------
+#
+# jak rozdělit více orp v proměnné do řádků, aby v každém řádku byla v proměnné 1 hodnota
 
+d_long_orp <- d %>%   
+  mutate(orp = strsplit(as.character(orp), ", ")) %>%
+  unnest(orp)  # Rozbalit dataframe podle orp
+
+
+summary_df_orp <- d_long_orp %>%
+  select(orp, id)  %>% 
+  distinct() %>%  
+  group_by(orp) %>%
+  summarise(pocet_respondentu = n(), .groups = 'drop')
 
 # seřazení datasetu podle hodnot proměnné ------------------------------------------------------
 
@@ -346,8 +401,15 @@ spanek <- d %>%
 d <- d %>% 
   arrange(desc(vek))
 
+
 # arrange mělo problém s českou diakritikou ale funkce sort() funguje 
 d$prijmeni <- sort(d$prijmeni, decreasing = FALSE)
+
+slice_max(d, order_by = vek, n = 3) %>% 
+  select(id, vek)
+
+slice_min(d, order_by = obvykla_delka_spanku, n = 5) %>% 
+  select(id, vzdelani_3kat, obvykla_delka_spanku)
 
 
 # ÚKOLY 
@@ -366,6 +428,36 @@ d <- d %>%
 # 1. smaž dataset spánek z global environment
 # 2. Umísti proměnnou vzdělání vš za proměnnou vzdelani_3kat 
 # 3. Seřaď responendty podle dne narozeni vzestupně 
+
+
+# transpozice (změna řádků a sloupců) a dlouhý a široký formát-------------------------------------------------------------
+colnames(d) 
+
+d_t <- as.data.frame(t(d))
+
+# dataset a cvičení z https://sociology-fa-cu.github.io/uvod-do-r-kniha/siroky-dlouhy-format.html
+countries <- read.csv("data/input/countries.txt")
+
+
+# převod na dlouhý formát
+countries_long <- countries %>% 
+  select(country, where(is.numeric)) %>% 
+  pivot_longer(cols = -country,
+               names_to = "variable",
+               values_to = "max_value") %>%
+  group_by(variable) %>% 
+  slice_max(max_value)
+
+# převod na široký formát
+# Poněkud umělým, ale názorným příkladem může být, pokud by naším cílem bylo vytvořit dataframe 
+# obsahující minimální hodnotu ohrožení chudobou podle převažujícího náboženského vyznání. 
+# Tento dataframů by měl být dobře srozumitelný pro naše čtenáře, a měl by proto mít podobu kontingenční tabulky.
+
+countries_wide <- countries %>% 
+  select(maj_belief, eu_member, poverty_risk) %>% 
+  group_by(maj_belief, eu_member) %>%
+  slice_min(poverty_risk) %>% 
+  pivot_wider(names_from = maj_belief, values_from = poverty_risk)
 
 
 

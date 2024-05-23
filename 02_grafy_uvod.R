@@ -95,6 +95,54 @@ boxplot(obvykla_delka_spanku ~ pohlavi, data = d,
 
 
 # ggplot2  ----------------------------------------------------------------
+# 2 základní atributy
+# aes co se má zobrazit na které škále
+ggplot(data = d, aes(x=vek, y = obvykla_delka_spanku))
+
+# geom_point()
+ggplot(data = d, aes(x=vek, y = obvykla_delka_spanku)) +
+  geom_point()
+
+ggplot(data = d, aes(x=vek, y = obvykla_delka_spanku)) +
+  geom_point() 
+
+ggplot(data = d, aes(x=vek, y = obvykla_delka_spanku, color = pohlavi)) +
+  geom_point(shape = 17, size = 2, alpha =0.7) +
+  theme_bw()
+
+# geom_bar()
+# # geom_bar zobrazuje počty, má jen 1 osu 
+ggplot(data = d, aes(x = pohlavi)) +
+  geom_bar()
 
 
+# geom_col()
+# chceme zobrazit ve slopupcovém grafu průměrný vek pro muže a ženy
+# nejdřív si musíme průměrný věk pro obě pohalví spočítat 
+agg_data <- d %>%
+  group_by(pohlavi) %>%
+  summarize(mean_vek = mean(vek, na.rm = TRUE))
 
+ggplot(data = agg_data, aes(x = pohlavi, y = mean_vek)) +
+  geom_col(color = "green", fill = "purple") + 
+  labs (x = "Věk", y = "průměrný počet hodin spánku", title = "Kolik hodin spí muži a ženy")
+
+
+# geom_boxplot()
+ggplot(data = d, aes(x = pohlavi, y = vek, fill = pohlavi)) +
+  geom_boxplot() +
+  scale_fill_manual(values = c("muži" = "lightblue", "ženy" = "orange")) +
+  labs(x = "Pohlaví", y = "Věk", title = "Průměrný věk mužů a žen")
+
+
+# kombiance geomů
+ggplot(data = d, aes(x=vek, y = obvykla_delka_spanku, color = pohlavi)) +
+  geom_point(alpha =0.7) +
+  geom_boxplot() +
+  theme_bw()
+
+ggplot(data = d, aes(x = pohlavi, y = obvykla_delka_spanku, color = pohlavi)) +
+  geom_point(alpha = 0.7, position = position_jitter(width = 0.2)) +
+  geom_boxplot(alpha = 0.5, position = position_dodge(width = 0.75), outlier.shape = NA) +
+  theme_bw() +
+  labs(x = "Pohlaví", y = "Obvyklá délka spánku", title = "Délka spánku podle věku a pohlaví")

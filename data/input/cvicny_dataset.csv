@@ -1,54 +1,54 @@
 ﻿id;jméno;datum narození;pohlavi;ORP;vzdělání;obvyklá délka spánku 
-1;Marie Králová;       19.11.1976;1;Blansko;ZŠ ;6,8
-2;Tomáš Novotný;       23.12.1973;2;Brno;SŠ ;7,2
-3;Michaela Benešová;       03.05.1974;1;Česká Kamenice;ZŠ ;7,5
-4;Antonín Urban;       25.02.1977;2;Česká Lípa;VŠ;7,5
-5;Matěj Němec;       27.08.1988;2;České Budějovice;SŠ ;8,7
-6;Jana Svobodová;       21.03.1981;1;Český Těšín;VŠ;7,5
-7;Radek Doležal;       28.12.1985;2;Děčín;VŠ;8
-8;Anna Nováková;       16.07.1968;1;Dvůr Králové nad Labem;VŠ;6,9
-9;Šimon Růžička;       01.01.1994;2;Frýdek-Místek;VŠ;
-10;Ondřej Pospíšil;       09.12.1983;2;Havířov;SŠ ;8,4
-11;Eva Doležalová;       09.02.1982;1;Hodonín;ZŠ ;8,5
-12;Marek Horák;       11.11.1995;2;Hradec Králové;SŠ ;8,5
-13;Adéla Černá;       29.09.1992;1;Chomutov;ZŠ ;7,7
-14;Karolína Kučerová;       08.01.1989;1;Chrudim;ZŠ ;7
+1;Marie Králová;       19.11.1976;1;České Budějovice;ZŠ ;6,8
+2;Tomáš Novotný;       23.12.1973;2;Praha;SŠ ;7,2
+3;Michaela Benešová;       03.05.1974;1;Černošice;ZŠ ;7,5
+4;Antonín Urban;       25.02.1977;2;Plzeň;VŠ;7,5
+5;Matěj Němec;       27.08.1988;2;Brno, Plzeň, Praha;SŠ ;8,7
+6;Jana Svobodová;       21.03.1981;1;Rožnov pod Radhoštěm;VŠ;7,5
+7;Radek Doležal;       28.12.1985;2;Karlovy Vary;VŠ;8
+8;Anna Nováková;       16.07.1968;1;Lovosice, Litoměřice, Žatec, Roudnice nad Labem, Chomutov, Kadaň;VŠ;6,9
+9;Šimon Růžička;       01.01.1994;2;Černošice, Rakovník, Říčany, Praha;VŠ;
+10;Ondřej Pospíšil;       09.12.1983;2;Brno, Olomouc, Plzeň, Ústí nad Labem, Praha;SŠ ;8,4
+11;Eva Doležalová;       09.02.1982;1;Brno;ZŠ ;8,5
+12;Marek Horák;       11.11.1995;2;Teplice;SŠ ;8,5
+13;Adéla Černá;       29.09.1992;1;České Budějovice, Praha;ZŠ ;7,7
+14;Karolína Kučerová;       08.01.1989;1;Ivančice;ZŠ ;7
 15;Roman Fiala;       03.08.1979;2;Jihlava;VŠ;8
-16;Jiří Kolář;       04.06.1993;2;Jindřichův Hradec;VŠ;9
+16;Jiří Kolář;       04.06.1993;2;Ivančice;VŠ;9
 17;;;;;;
 ;;;;;;8,4
-19;Karel Beneš;       18.09.1987;2;Karviná;VŠ;6,4
-20;Václav Hájek;       26.06.1980;2;Kladno;SŠ ;6,4
-21;Klára Jelínková;       07.08.1985;1;Klatovy;ZŠ ;4,9
-22;Lucie Pokorná;       18.12.1987;1;Kroměříž;ZŠ ;7,4
-23;Petr Procházka;       17.10.1984;2;Liberec;ZŠ ;8,8
-24;Alena Fialová;       11.12.1991;1;Litoměřice;ZŠ ;6,4
-25;Nikola Marková;       30.07.1971;1;Mladá Boleslav;ZŠ ;7,6
-26;Josef Král;       13.02.1975;2;Most;VŠ;8
-27;Kateřina Němcová;       01.04.1983;1;Nový Jičín;ZŠ ;8
-28;David Kučera;       02.07.1976;2;Olomouc;ZŠ ;8
-29;Daniel Jelínek;       07.10.1969;2;Opava;VŠ;6,9
-30;Lenka Urbanová;       23.09.1978;1;Opočno;SŠ ;6,9
-30;Lenka Urbanová;       23.09.1978;1;Opočno;SŠ ;5,9
-32;Martin Dvořák;       08.09.1967;2;Ostrava;SŠ ;7,5
-33;Adam Pokorný;       05.05.1978;2;Pardubice;SŠ ;8,8
+19;Karel Beneš;       18.09.1987;2;Praha;VŠ;6,4
+20;Václav Hájek;       26.06.1980;2;Plzeň;SŠ ;6,4
+21;Klára Jelínková;       07.08.1985;1;Břeclav;ZŠ ;4,9
+22;Lucie Pokorná;       18.12.1987;1;Ústí nad Labem;ZŠ ;7,4
+23;Petr Procházka;       17.10.1984;2;Mladá Boleslav;ZŠ ;8,8
+24;Alena Fialová;       11.12.1991;1;Olomouc, Přerov, Uherské Hradiště, Praha;ZŠ ;6,4
+25;Nikola Marková;       30.07.1971;1;Praha;ZŠ ;7,6
+26;Josef Král;       13.02.1975;2;Rumburk;VŠ;8
+27;Kateřina Němcová;       01.04.1983;1;Rokycany;ZŠ ;8
+28;David Kučera;       02.07.1976;2;Vysoké Mýto;ZŠ ;8
+29;Daniel Jelínek;       07.10.1969;2;Pardubice;VŠ;6,9
+30;Lenka Urbanová;       23.09.1978;1;Praha;SŠ ;6,9
+30;Lenka Urbanová;       23.09.1978;1;Moravská Třebová;SŠ ;5,9
+32;Martin Dvořák;       08.09.1967;2;Broumov, Dvůr Králové nad Labem, Hradec Králové, Náchod, Trutnov;SŠ ;7,5
+33;Adam Pokorný;       05.05.1978;2;Jablonec nad Nisou, Liberec;SŠ ;8,8
 34;Lukáš Černý;       30.04.1991;2;Plzeň;SŠ ;8
-35;Jakub Svoboda; 14.06.1989;2;Praha;VŠ;5,7
-36;Kristýna Procházková;       24.11.1966;1;Prostějov;ZŠ ;4,5
-37;Zuzana Kolářová;       30.07.1971;1;Slaný;ZŠ ;4,5
-37;Zuzana Kolářová;       30.07.1971;1;Slaný;ZŠ ;9
-39;Tereza Dvořáková;       12.08.1990;1;Sokolov;ZŠ ;4,5
-40;Hana Zemanová;;1;Strakonice;VŠ;8,9
-41;Martina Vaňková;       05.03.1992;1;Sušice;ZŠ ;8
-42;Markéta Pospíšilová;       23.09.1978;1;Tábor;ZŠ ;8,5
-43;Vojtěch Sedláček;       15.04.1972;2;Teplice;VŠ;8
-44;Veronika Horáková;       14.06.1979;1;Trutnov;ZŠ ;9,2
-45;Patrik Vaněk;       10.12.1986;2;Třebíč;VŠ;9,2
-45;Patrik Vaněk;       10.12.1986;2;Třebíč;VŠ;7,8
-47;Michal Veselý;       19.03.1982;2;Ústí nad Labem;SŠ ;8,1
-48;Barbora Hájková;       05.03.1992;1;Zábřeh;ZŠ ;8,1
-49;Filip Marek;       22.01.1970;2;Zlín;SŠ ;7,1
-50;Eliška Novotná;       06.05.1974;1;Znojmo;ZŠ ;8
-51;Simona Sedláčková;       27.06.1988;1;Žatec;ZŠ ;6,1
-52;Natálie Veselá;       02.10.1975;1;Žďár nad Sázavou;ZŠ ;5,8
-46;Tereza Dvořáková;       12.05.1995;1;Praha;ZŠ ;
+35;Jakub Svoboda; 14.06.1989;2;Ostrov;VŠ;5,7
+36;Kristýna Procházková;       24.11.1966;1;Rumburk;ZŠ ;4,5
+37;Zuzana Kolářová;       30.07.1971;1;Rumburk;ZŠ ;4,5
+37;Zuzana Kolářová;       30.07.1971;1;Vyškov;ZŠ ;9
+39;Tereza Dvořáková;       12.08.1990;1;Praha;ZŠ ;4,5
+40;Hana Zemanová;;1;Kutná Hora;VŠ;8,9
+41;Martina Vaňková;       05.03.1992;1;Říčany;ZŠ ;8
+42;Markéta Pospíšilová;       23.09.1978;1;Brno, Olomouc, Šumperk, Zábřeh;ZŠ ;8,5
+43;Vojtěch Sedláček;       15.04.1972;2;Benešov;VŠ;8
+44;Veronika Horáková;       14.06.1979;1;Ostrava;ZŠ ;9,2
+45;Patrik Vaněk;       10.12.1986;2;Břeclav;VŠ;9,2
+45;Patrik Vaněk;       10.12.1986;2;Praha;VŠ;7,8
+47;Michal Veselý;       19.03.1982;2;Brno;SŠ ;8,1
+48;Barbora Hájková;       05.03.1992;1;České Budějovice;ZŠ ;8,1
+49;Filip Marek;       22.01.1970;2;Luhačovice;SŠ ;7,1
+50;Eliška Novotná;       06.05.1974;1;Nymburk;ZŠ ;8
+51;Simona Sedláčková;       27.06.1988;1;Kutná Hora;ZŠ ;6,1
+52;Natálie Veselá;       02.10.1975;1;Mariánské Lázně;ZŠ ;5,8
+46;Tereza Dvořáková;       12.05.1995;1;Břeclav;ZŠ ;

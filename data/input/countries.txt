@@ -1,0 +1,39 @@
+country,code,gdp,population,area,eu_member,postsoviet,life_exp,uni_prc,poverty_risk,material_dep,hdi,foundation_date,maj_belief,dem_index,di_cat,hd_title_name
+Belgium,BE,450505.7,11398589,30528,yes,no,81.2,0.36,0.203,0.113,0.92,1831-07-21,catholic,7.78,Flawed democracy,King - Philippe
+Bulgaria,BG,55182.2,7050034,110879,yes,yes,74.8,0.248,0.389,0.438,0.81,1989-11-10,orthodox,7.03,Flawed democracy,President - Rumen Radev
+Czechia,CZ,207772.4,10610055,78867,yes,yes,79.2,0.217,0.122,0.098,0.89,1993-01-01,nonbelief,7.69,Flawed democracy,President - Miloš Zeman
+Denmark,DK,298276.5,5781190,43094,yes,no,81.2,0.327,0.172,0.068,0.93,2053-05-19,protestantism,9.22,Full democracy,Queen - Margrethe II
+Germany,DE,3386000,82792351,357022,yes,yes,81,0.252,0.19,0.091,0.94,1949-05-23,catholic,8.68,Full democracy,President - Frank-Walter Steinmeier
+Estonia,EE,25656.9,1319133,45228,yes,yes,77.8,0.359,0.234,0.116,0.87,1918-02-24,nonbelief,7.97,Flawed democracy,President - Kersti Kaljulaid
+Ireland,IE,324038.2,4830392,70273,yes,no,81.5,0.405,0.227,0.148,0.94,1937-12-29,catholic,9.15,Full democracy,President - Michael D. Higgins
+Greece,GR,184713.6,10741165,131957,yes,no,81.2,0.277,0.348,0.36,0.87,1975-11-19,orthodox,7.29,Flawed democracy,President - Prokopis Pavlopoulos
+Spain,ES,1208248,46658447,505370,yes,no,83.1,0.34,0.266,0.128,0.89,1978-12-06,catholic,8.08,Full democracy,King - Felipe VI
+France,FR,2353090,66926166,643801,yes,no,82.9,0.328,0.171,0.111,0.9,1958-10-05,catholic,7.8,Flawed democracy,President - Emmanuel Macron
+Croatia,HR,51467.8,4105493,56594,yes,yes,78.3,0.22,0.264,0.259,0.83,1991-10-08,catholic,6.57,Flawed democracy,President - Kolinda Grabar-Kitarović
+Italy,IT,1756981.5,60483973,301340,yes,no,82.8,0.171,0.289,0.179,0.88,1948-01-01,catholic,7.71,Flawed democracy,President - Sergio Mattarella
+Cyprus,CY,20730.9,864236,9251,yes,no,80.7,0.394,0.252,0.286,0.87,1960-08-16,orthodox,7.59,Flawed democracy,President - Nicos Anastasiades
+Latvia,LV,29523.7,1934379,64589,yes,yes,75,0.301,0.282,0.23,0.85,1922-11-07,orthodox,7.38,Flawed democracy,President - Egils Levits
+Lithuania,LT,45113.8,2808901,65300,yes,yes,75,0.361,0.296,0.244,0.86,1990-03-11,catholic,7.5,Flawed democracy,President - Gitanas Naus?da
+Luxembourg,LU,58869.2,602005,2586,yes,no,82.4,0.383,0.215,0.044,0.9,1890-11-23,catholic,8.81,Full democracy,Grand Duke - Henri
+Hungary,HU,131935.1,9778371,93028,yes,yes,76,0.217,0.256,0.289,0.84,1989-10-23,catholic,6.63,Flawed democracy,President - János Áder
+Malta,MT,12327.7,475701,316,yes,no,81.5,0.242,0.193,0.08,0.88,1974-12-13,catholic,8.21,Full democracy,President - George Vella
+Netherlands,NL,774039,17181084,41543,yes,no,81.6,0.33,0.17,0.069,0.93,1815-08-24,nonbelief,8.89,Full democracy,King - Willem-Alexander
+Austria,AT,386093.8,8822267,83871,yes,no,81.9,0.301,0.181,0.074,0.91,1918-11-12,catholic,8.29,Full democracy,Federal President - Alexander Van der Bellen
+Poland,PL,496461.8,37976687,312685,yes,yes,77.8,0.272,0.195,0.132,0.87,1989-04-19,catholic,6.67,Flawed democracy,President - Andrzej Duda
+Portugal,PT,201612.5,10291027,92090,yes,no,81.5,0.225,0.233,0.18,0.85,1976-04-02,catholic,7.84,Flawed democracy,President - Marcelo Rebelo de Sousa
+Romania,RO,202883.6,19530631,238391,yes,yes,75.2,0.155,0.357,0.372,0.81,1989-12-22,orthodox,6.38,Flawed democracy,President - Klaus Iohannis
+Slovenia,SI,45947.6,2066880,20273,yes,yes,80.9,0.287,0.171,0.121,0.9,1991-12-13,catholic,7.5,Flawed democracy,President - Borut Pahor
+Slovakia,SK,90201.8,5443120,49035,yes,yes,77.4,0.22,0.163,0.164,0.86,1993-01-01,catholic,7.1,Flawed democracy,President - Zuzana Čaputová
+Finland,FI,232096,5513130,338145,yes,no,81.4,0.373,0.157,0.082,0.92,1809-03-29,protestantism,9.14,Full democracy,President - Sauli Niinistö
+Sweden,SE,466924.6,10120242,450295,yes,no,82.4,0.371,0.177,0.042,0.93,1974-01-01,protestantism,9.39,Full democracy,King - Carl XVI Gustaf
+United Kingdom,GB,2393692.8,66273576,243610,yes,no,81.4,0.393,0.22,0.123,0.92,1801-01-01,protestantism,8.53,Full democracy,Queen - Elizabeth II
+Iceland,IS,21917.7,348450,103000,no,no,82.4,0.365,NA,NA,0.93,1845-07-01,protestantism,9.58,Full democracy,President - Gu?ni Th. Jóhannesson
+Liechtenstein,LI,NA,38114,160,no,no,NA,NA,NA,NA,0.92,2003-03-16,catholic,NA,NA,Prince Regnant - Hans-Adam II
+Norway,NO,368388.9,5295619,323802,no,no,82.5,0.375,0.16,0.048,0.95,1814-05-17,protestantism,9.87,Full democracy,King - Harald V
+Switzerland,CH,597314.3,8484130,41277,no,no,83.3,0.377,0.181,0.046,0.94,1291-08-01,catholic,9.03,Full democracy,President - Ueli Maurer
+Montenegro,ME,NA,622359,13812,no,no,76.8,0.203,NA,NA,0.81,2007-10-22,orthodox,5.74,Hybrid regime,President - Milo Đukanović
+North Macedonia,MK,10734.7,2075301,25713,no,yes,75.9,0.176,0.416,0.481,0.76,1991-11-17,orthodox,5.87,Hybrid regime,President - Stevo Pendarovski
+Albania,AL,12745.5,2870324,28748,no,yes,76.4,NA,NA,NA,0.78,1991-04-29,islam,5.98,Hybrid regime,President - Ilir Meta
+Serbia,RS,42780.2,7001444,77474,no,yes,76.3,0.204,0.367,0.307,0.79,1992-04-27,orthodox,6.41,Flawed democracy,President - Aleksandar Vučić
+Turkey,TR,NA,80810525,783562,no,no,76.4,0.173,0.413,0.413,0.79,1923-10-29,islam,4.37,Hybrid regime,President - Recep Tayyip Erdo?an
+Bosnia and Herzegovina,BA,16759.3,NA,51197,no,yes,77.3,NA,NA,NA,0.77,1992-03-03,orthodox,4.98,Hybrid regime,High Representative - Valentin Inzko

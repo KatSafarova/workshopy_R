@@ -26,7 +26,7 @@ d <- read.csv2("data/input/cvicny_dataset.csv", header = TRUE, sep = ";", na.str
 # další alternativy read.csv(), read.table()
 
 
-# načítám dataset ve formtá xlsx - funkce z balíčku openxls
+# načítám dataset ve formtá xlsx - funkce z balíčku openxlsx
 d2 <- read.xlsx("data/input/cvicny_dataset.xlsx", na.strings = c("", "NA")) # pokud máme více listů načítá se automaticky 1., pokud chceme jiný potřeba definovat 
 d2 <- read.xlsx("data/input/cvicny_dataset.xlsx", sheet = "vsichni", na.strings = c("", "NA"))
 
@@ -83,13 +83,16 @@ rada <- 1:3 # x:y vytvoří řadu od x do y; proměnná obsahuje 3 prvky
 
 sada <- c(1, 4) # c() vytvoří proměnnou s více prvky
 
-x + y 
+soucet <- x + y 
 x - y
 x / y
 x * y
 sqrt(x+y)
 
+colnames(d)
+
 class(d$ORP)
+
 is.character(d$ORP)
 is.numeric(d$id)
 
@@ -125,6 +128,7 @@ d <- d %>%
 
 table(d$pohlavi)
 
+rm(d1)
 
 # chybějící hodnoty
 # přeskočí všechny řádky, kde je nějaké NA, stejně funguje funkce complete.cases()
@@ -147,6 +151,8 @@ d5 <- d %>%
 # přeměna všech NA v dataframu na vybranou hodnotu - používat opatrně 
 # d[is.na(d)] <- 0
 
+d6 <- d %>% 
+  filter(is.na(pohlavi))
 
 # ÚKOLY 
 # 1. zjisti, kolik chybějících hodnot je v proměnné pohlavi v tomto datasetu
@@ -157,6 +163,8 @@ d5 <- d %>%
 # počty chybějících hodnot v proměnných 
 # ve sloupcích
 na_counts <- colSums(is.na(d))
+
+d7 <- count(d, is.na(pohlavi))
 
 # Vytvoření dataframe s názvy proměnných a počty NA hodnot
 na_counts_df <- data.frame(
@@ -181,22 +189,23 @@ duplikaty <- d %>%
 
 duplikaty2 <- d %>%
   group_by(id) %>%
-  filter(n() > 1)
+  filter(n() > 1) %>% 
+  distinct(id)
 
 
 # Odstranění úplných duplikátů 
-d <- distinct(d, .keep_all = TRUE)
+d <- distinct(d)
+n_distinct(d$orp)
 
 # Odstranění opakujících se hodnot podle proměnné orp
 d_jedinecne_orp <- distinct(d, orp, .keep_all = TRUE)
 
 rm(d1, d2, d3, d4, d5, na_counts_df, resp_s_na, duplikaty, duplikaty2, d_jedinecne_orp)
+rm(d6, d7)
 
 
 # ÚKOLY 
-# 1. Zjisti, která orp se v datasetu opakují 
-
-
+# 1. Zjisti, kolik  orp se v datasetu opakuje
 
 # úprava stávajících proměnných a tvorba nových s mutaate -----------------------------------------------------------
 
@@ -208,7 +217,6 @@ d <- d %>%
 
 class(d$pohlavi)
 levels(d$pohlavi)
-
 
 d <- d %>%
   mutate(pohlavi = factor(pohlavi, levels = c(1, 2), labels = c("ženy", "muži")))
@@ -240,12 +248,12 @@ d_serazeny <- d %>%
 
 rm(d_serazeny)
 
+d$datum_narozeni
 
 # nová proměnná rok_narození pro výpočet věku, funkce z balíčku lubridate
 d$rok_narozeni <- year(dmy(d$datum_narozeni))
 d$mesic_narozeni <- month(dmy(d$datum_narozeni))
 d$den_narozeni <- day(dmy(d$datum_narozeni))
-
 
 d <- d %>% 
   mutate(vek = 2024 - rok_narozeni)
@@ -261,19 +269,26 @@ d <- d %>%
 
 
 # přejmenování a rozdělování a spojování buněk ----------------------------
+colnames(d)
 
 d <- d %>% 
   rename(jmenoprijmeni = jmeno)
 
+colnames(d)
+d$jmeno
+
 # rozdělení jména a příjmení do dvou buněk 
 d <- separate(d, jmenoprijmeni, into = c("jmeno", "prijmeni"), sep = " ",  remove = FALSE)
 
+colnames(d)
 
 # spojení 
-d <- unite(d, jmeno_prijmeni, jmeno, prijmeni, sep = " ", remove = FALSE)
+d <- unite(d, jmeno_prijmeni, jmeno, prijmeni, sep = "-", remove = FALSE)
+
+d$jmeno_prijmeni
 
 
-# přejmenování a nová proměnná na zákaldě hodnot jiné proměnné
+# přejmenování a nová proměnná na základě hodnot jiné proměnné
 
 d <- d %>% 
   rename(vzdelani_3kat = vzdelani_f) %>% 
@@ -460,9 +475,12 @@ countries_wide <- countries %>%
   pivot_wider(names_from = maj_belief, values_from = poverty_risk)
 
 
+# sekce -------------------------------------------------------------------
+
+
 
 # ukládání dat ------------------------------------------------------------
-
+getwd()
 saveRDS(d, "data/processed/dataset_clean.rds")
 
 write.xlsx(d, "data/processed/dataset_clean.xlsx")

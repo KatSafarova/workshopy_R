@@ -11,6 +11,7 @@ library(skimr) # souhrnné statistiky
 library(stats)
 library(tidyverse)
 library(datasets)
+library(stringr)
 
 # při načtení projektů se nám ve výchozím nastavení soubory načítají a ukládají do složky s projektem, můžeme ověřit pomocí 
 
@@ -307,7 +308,7 @@ d$obvykla_delka_spanku <- as.numeric(gsub(",", ".", d$obvykla_delka_spanku))
 # 2. udělej dichotomickou proměnnou vzdelani_ss s hodnotami 0 a 1 (1 pokud má SŠ vzdělání)
 
 
-
+# TODO doprobrat na 2. setkání 
 # funkce filter a select --------------------------------------------------
 
 # filter pro výběr řádků s danými parametry
@@ -330,22 +331,27 @@ vybrana_id <- d %>%
   filter(id %in% c(5:8))
 
 # mimo těchto více čísel
-vybrana_id2 <- d %>% 
+vybrana_id1 <- d %>% 
   filter(!id %in%c(5:8))
 
 
-# kombiance parametrů
-vybrana_id3 <- d %>% 
+# kombiance podmínek: A
+vybrana_id2 <- d %>% 
   filter(id !=10 & vzdelani_3kat %in% c("ZŠ", "SŠ"))
 
-# kombiance parametrů
+# kombinace podmínek: NEBO
+vybrana_id3 <- d %>% 
+  filter(str_starts(jmeno, "M") | id > 45)
+
+
+# kombiance podmínek
 vybrana_id4 <- d %>%
   filter(vek %in% c(30:40) & pohlavi == "ženy")
 
 # vybrana_id5 <- d %>%
 #   filter(vek <= 40 & vek >= 30 & pohlavi == "ženy")
 
-# select pro výběr proměnných
+# select pro výběr konkrétních proměnných
 d_vyber <- d %>% 
   select(id, obvykla_delka_spanku)
 
@@ -487,19 +493,37 @@ countries_wide <- countries %>%
   slice_min(poverty_risk) %>% 
   pivot_wider(names_from = maj_belief, values_from = poverty_risk)
 
+table(countries$country)
 
-# TODO přidat příklad s case_when 
+# použití case_when()
+# This function allows you to vectorise multiple if_else() statements. 
+# Each case is evaluated sequentially and the first match for each element determines the corresponding value in the output vector. 
+# If no cases match, the .default is used as a final "else" statment.
+
+countries <- countries %>% 
+  mutate(zeme_skupina = case_when(country %in% c("Albania", "Serbia", "North Macedonia", "Montenegro", "Bulgaria", "Romania", "Bosnia and Herzegovina") ~ "Balkán",
+                                  country %in% c("Cyprus", "Greece", "Turecko", "Italy", "Spain", "Portugal", "Turecko", "Croatia", "Malta") ~ "jižní Evropa",
+                                  country %in% c("Czechia", "Hungary", "Slovakia", "Germany", "Poland", "Austria") ~ "střední Evropa",
+                                  country %in% c("Sweden", "Iceland", "Norway", "Latvia", "Finland", "Lithuania") ~ "severní Evropa",
+                                  country %in% c("United Kingdom", "Luxembourg", "France", "Ireland", "Belgium", "Lithuania", "Denmark", 
+                                                 "Liechtenstein", "Switzerland") ~ "západní Evropa",
+                                  TRUE ~ "ostatní"))
+         
+check <- countries %>% 
+  select(country, zeme_skupina) %>% 
+  filter(zeme_skupina == "ostatní")
+
 
 
 # ukládání dat ------------------------------------------------------------
 getwd()
 
 # ukládání v Rkovém formátu 
-saveRDS(d, "data/processed/dataset_clean.rds")
+saveRDS(d, "data/processed/cvicny_dataset_clean.rds")
+saveRDS(countries, "data/intermediate/countries.rds")
 
 # ukládání jako excelového xlsx souboru 
-write.xlsx(d, "data/processed/dataset_clean.xlsx")
-
-
+write.xlsx(d, "data/processed/cvicny_dataset_clean.xlsx")
+write.xlsx(countries, "data/intermediate/countries.xlsx")
 
 

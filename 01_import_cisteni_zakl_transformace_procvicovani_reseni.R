@@ -78,6 +78,8 @@ d4 <- d3 %>%
 d5 <- d3 %>% 
   rename(zeme = country)
 
+d5$life_exp <- as.numeric(d5$life_exp)
+
 # Spočítej průměr průměrnou naději dožití (life_exp) pro postsovětské a nepostsovětské země, pojmenuj ji life_exp_mean (ideální použít group_by), poraď se případně s chtagpt
 d6 <- d5 %>% 
   group_by(postsoviet) %>% 

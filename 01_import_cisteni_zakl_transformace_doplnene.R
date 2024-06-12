@@ -129,8 +129,6 @@ d <- d %>%
 
 table(d$pohlavi)
 
-rm(d1)
-
 # chybějící hodnoty
 # přeskočí všechny řádky, kde je nějaké NA, stejně funguje funkce complete.cases()
 d1 <- d %>% 

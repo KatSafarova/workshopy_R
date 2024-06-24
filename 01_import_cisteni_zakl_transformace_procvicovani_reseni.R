@@ -25,9 +25,8 @@ d1 <- read.csv2("data/input/countries.txt", sep = ",")
 
 # Nahraj do objektu d2 soubor v Rkovém formátu .rds kraje_pocty_projektu_cvicna_data.rds ze slozky data/processed 
 
-
 d2 <- readRDS("data/processed/kraje_pocty_projektu_cvicna_data.rds")
-
+# Petr doporučuje používat read_csv()
 
 # Klávesové kratky -------------------------------------------------------
 # Napiš %>% (budeme příště více používat)
@@ -35,7 +34,7 @@ d2 <- readRDS("data/processed/kraje_pocty_projektu_cvicna_data.rds")
 # ctrl + shift + M %>% 
 
 # Odkomentuj tuto část kódu
- # ctr + shift + c pro odkomentování nebo zakomentování 
+# ctr + shift + c pro odkomentování nebo zakomentování
 
 
 # Proměnné a datové typy --------------------------------------------------
@@ -58,7 +57,7 @@ print(pocet_hodnot)
 d3 <- d1 %>% 
   filter(!is.na(gdp))
 
-
+# 
 # rm(d1, d2)
 
 # Zakomentuj rm(d) výše a spusť skript znovu, můžeš zkusit zkratku Ctrl + Alt + B   
@@ -74,7 +73,6 @@ d4 <- d3 %>%
   filter(poverty_risk > 0.3)
 
 # Přejmenuj proměnnou country na zeme 
-
 d5 <- d3 %>% 
   rename(zeme = country)
 
@@ -89,7 +87,7 @@ d6 <- d5 %>%
 
 # seřaď dataset sestupně a vzestupně podle hodnoty proměnné gdp (můžeš se podívat do nápovědy funkce arrange přes ?arrange)
 d7 <- d5 %>% 
-  arrange(desc(gdp)) 
+  arrange(gdp)
 
 # Vytvoř novou proměnnou s názvem hustota_zal, ve které budeš dělit population proměnnou area - najdi nejnižší a nejvyšší hodnotu 
 
@@ -107,6 +105,7 @@ d9 <- d8 %>%
   mutate(stari_statu = 2024 - year(foundation_date))
 
 # ulož si výsledek do datasetu s nazvem procvicovani_1, zkus si ho ulozit jako csv, xlsx i rds soubor 
+getwd()
 
 saveRDS(d9, "data/processed/procvicovani_01.rds")
 write.xlsx(d9, "data/processed/procvicovani_01.xlsx")

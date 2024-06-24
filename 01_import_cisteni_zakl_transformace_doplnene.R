@@ -12,7 +12,6 @@ library(stats)
 library(tidyverse)
 library(datasets)
 library(stringr)
-library(stringi)
 
 # při načtení projektů se nám ve výchozím nastavení soubory načítají a ukládají do složky s projektem, můžeme ověřit pomocí 
 
@@ -323,7 +322,7 @@ d$id <- as.numeric(d$id)
 
 # čísla nejsou v uvozovkách
 vybrane_id <- d %>% 
-  filter(id == 10)
+  filter(id == 10 )
 
 # více čísel
 vybrana_id <- d %>% 
@@ -333,10 +332,10 @@ vybrana_id <- d %>%
 vybrana_id1 <- d %>% 
   filter(!id %in%c(5:8))
 
+
 # kombiance podmínek: A
 vybrana_id2 <- d %>% 
   filter(id !=10 & vzdelani_3kat %in% c("ZŠ", "SŠ"))
-
 
 # kombinace podmínek: NEBO
 vybrana_id3 <- d %>% 
@@ -347,9 +346,8 @@ vybrana_id3 <- d %>%
 vybrana_id4 <- d %>%
   filter(vek %in% c(30:40) & pohlavi == "ženy")
 
-vybrana_id5 <- d %>%
-  filter(vek <= 40 & vek >= 30 & pohlavi == "ženy")
-
+# vybrana_id5 <- d %>%
+#   filter(vek <= 40 & vek >= 30 & pohlavi == "ženy")
 
 # select pro výběr konkrétních proměnných
 d_vyber <- d %>% 
@@ -363,13 +361,13 @@ d_vyber3 <- d %>%
   select(starts_with("p")) 
 
 d_vyber4 <- d %>%
-  select(contains("_"))
+  select(contains("_")) 
 
 colnames(d)
 
 # odstranění proměnných s funkcí select
 d <- d %>% 
-  select(-vzdelani, -jmenoprijmeni, -jmeno_prijmeni, -na_resp)
+  select(-c(vzdelani, jmenoprijmeni, jmeno_prijmeni, na_resp))
 
 # d <- d %>%
 #   select(-vzdelani, -jmenoprijmeni, -jmeno_prijmeni, -na_resp)
@@ -382,19 +380,12 @@ rm(d_vyber, d_vyber2, d_vyber3, zeny, ne_muzi, vybrane_id, vybrana_id, vybrana_i
 # 2. vyfiltruj respondenta s id 12 
 # 3 vyber z datasetu jen proměnné které jsou číselné (is.numeric)
 
-do <- d %>% 
-  select(starts_with("o"))
 
-d12 <- d %>% 
-  filter(id == 12)
-
-dx <- d %>% 
-  select(where(is.numeric))
 
 
 # souhrnné a číselné statistiky -------------------------------------------
 
-summary(d$vek)
+summary(d$obvykla_delka_spanku)
 
 min(d$obvykla_delka_spanku, na.rm = TRUE)
 max(d$obvykla_delka_spanku, na.rm = TRUE)
@@ -403,34 +394,23 @@ median(d$obvykla_delka_spanku, na.rm = TRUE)
 sum(d$obvykla_delka_spanku, na.rm = TRUE)
 
 
-d <- d %>%
-  group_by(pohlavi) %>%
-  mutate(median_spanek = round(median(obvykla_delka_spanku, na.rm = TRUE), digits = 2),
-         mean_spanek = round(mean(obvykla_delka_spanku, na.rm = TRUE), digits = 2)) 
-
-zeny <- d %>% 
-  filter(pohlavi == "ženy")
-
-median(zeny$obvykla_delka_spanku, na.rm = TRUE)
+spanek <- d %>%
+  group_by(vzdelani_3kat) %>%
+  summarize(mean_spanek = round(mean(obvykla_delka_spanku, na.rm = TRUE), digits = 2)) %>% 
+  ungroup()
 
 # ÚKOLY 
 # 1. jaký je nejstarší a nejmladší účastník? Kolik je jim let? 
 # 2. jaký je medián hodin spánku pro ženy? 
-max(d$vek, na.rm=TRUE)
-
-d$obvykla_delka_spanku
-d$pohlavi 
 
 # unnest ------------------------------------------------------------------
 #
 # jak rozdělit více orp v proměnné do řádků, aby v každém řádku byla v proměnné 1 hodnota
 # pomocí funkce unnest()
-
-
-# TODO ověřit, jestli se rozhazují divně hodnoty
 d_long_orp <- d %>%   
   mutate(orp = strsplit(as.character(orp), ", ")) %>%
   unnest(orp)  # Rozbalit dataframe podle orp
+
 
 # pocty respondentů pro jednotlivá orp
 summary_df_orp <- d_long_orp %>%
@@ -447,24 +427,12 @@ summary_df_orp <- d_long_orp %>%
 d <- d %>% 
   arrange(desc(vek))
 
-# .locale="cs" pro řazení správně podle českých znaků, je potřeba mít balíček "stringi"
-d <- d %>%
-  arrange(prijmeni, .locale="cs")
 
-d$prijmeni
-
-arrang
-
-
-
-# Funkce stri_order vrací vektor indexů, které odpovídají správnému pořadí řádků podle řazení s ohledem na locale (v tomto případě české). 
-# Funkce slice potom tyto indexy použije k výběru řádků ve správném pořadí.
-
-d <- d %>% 
-  ungroup()
+# arrange mělo problém s českou diakritikou ale funkce sort() funguje 
+d$prijmeni <- sort(d$prijmeni, decreasing = FALSE)
 
 # vybere 3 řádky s největší hodnotou věku 
-slice_max(d, order_by = vek, n = 5) %>% 
+slice_max(d, order_by = vek, n = 3) %>% 
   select(id, vek)
 
 # vybere 5 řádků s největší hodnotou věku 
@@ -472,19 +440,13 @@ slice_min(d, order_by = obvykla_delka_spanku, n = 5) %>%
   select(id, vzdelani_3kat, obvykla_delka_spanku)
 
 
-
 # ÚKOLY 
 # 1. Seřaď respondenty podle hodin spánku od nejméně po nejvíce
 # 2. Seřaď datset abecedně podle ORP od konce abecedy
 
-d <- d %>% 
-  arrange(obvykla_delka_spanku) %>% 
-  select(id, jmeno, prijmeni, obvykla_delka_spanku)
-
-
 
 # změna pořadí proměnných v dataframu-------------------------------------------------
-colnames(d)
+
 d <- d %>%
   relocate(vek, .after = datum_narozeni) %>%
   relocate(orp, .before = last_col())
@@ -540,26 +502,16 @@ countries <- countries %>%
   mutate(zeme_skupina = case_when(country %in% c("Albania", "Serbia", "North Macedonia", "Montenegro", "Bulgaria", "Romania", "Bosnia and Herzegovina") ~ "Balkán",
                                   country %in% c("Cyprus", "Greece", "Turecko", "Italy", "Spain", "Portugal", "Turecko", "Croatia", "Malta") ~ "jižní Evropa",
                                   country %in% c("Czechia", "Hungary", "Slovakia", "Germany", "Poland", "Austria") ~ "střední Evropa",
-                                  country %in% c("Sweden", "Iceland", "Norway", "Latvia", "Germany", "Finland", "Lithuania") ~ "severní Evropa",
+                                  country %in% c("Sweden", "Iceland", "Norway", "Latvia", "Finland", "Lithuania") ~ "severní Evropa",
                                   country %in% c("United Kingdom", "Luxembourg", "France", "Ireland", "Belgium", "Lithuania", "Denmark", 
                                                  "Liechtenstein", "Switzerland") ~ "západní Evropa",
-                                  .default = "ostatní"))
+                                  TRUE ~ "ostatní"))
          
 check <- countries %>% 
   select(country, zeme_skupina) %>% 
-  filter(country == "Germany")
+  filter(zeme_skupina == "ostatní")
 
-# dalo by se místo case_when požít "case_match" pro jednodušší zápis
-# dta <- tribble(~jedna, ~dva,
-#                "A", 3,
-#                "B", 2,
-#                "Č", 2,
-#                "C", 1)
-# 
-# dta |> 
-#   mutate(tri = case_match(jedna,
-#                           "A" ~ "acko",
-#                           c("B", "C") ~ "be a ce"))
+
 
 # ukládání dat ------------------------------------------------------------
 getwd()

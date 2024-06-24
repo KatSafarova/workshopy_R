@@ -1,5 +1,6 @@
 
 # načtení balíčků  --------------------------------------------------------
+
 library(dplyr)  # data manipulation 
 library(stringr) # práce s textovými proměnnými 
 library(ggplot2) # grafy
@@ -12,18 +13,11 @@ library(forcats) # práce s faktory
 # font_import()  # Toto může chvíli trvat
 # loadfonts(device = "win")  # Načte fonty pro Windows
 
-# https://www.youtube.com/watch?v=qnw1xDnt_Ec
-# browseURL("https://www.youtube.com/watch?v=qnw1xDnt_Ec")
 
-# https://www.youtube.com/watch?v=IWXcw6NHM6E&list=PLBnFxG6owe1HRvUL6A5QNF_8ujP8NdLMc
-
-# minule konec facety - okolo 120 
-# TODO soustředit se hlavně  na ggplot 
 
 # načtení dat  -------------------------------------------------------------
 
 d <- readRDS("data/processed/cvicny_dataset_clean.rds")
-
 
 
 # HISTOGRAM ---------------------------------------------------------------
@@ -36,7 +30,7 @@ hist(d$obvykla_delka_spanku)
 png("grafy/histogram_base_obvykla_delka_spanku.png", width = 800, height = 600, res =300)
 
 hist(d$obvykla_delka_spanku, col = "purple", # změna barvy
-     breaks = seq(3, 10, by = 0.5), # rozsah sloupců, po jaké hodnotě se dělí (podrobnost)
+     breaks = seq(3, 10, by = 1), # rozsah sloupců, po jaké hodnotě se dělí (podrobnost)
      xlim = c(3, 15), # limitní hodnoty na ose X
      main = "Obvyklá délka spánku v hodinách",  # titulek
      xlab = "počet hodin", # název osy X
@@ -94,16 +88,13 @@ ggplot(data = d, aes(x = obvykla_delka_spanku)) +
 d %>% 
   drop_na(obvykla_delka_spanku) %>% 
   ggplot(aes(x = obvykla_delka_spanku)) + 
-  geom_histogram(binwidth = 0.7, fill = "turquoise", color = "blue") + 
+  geom_histogram(binwidth = 1, fill = "turquoise", color = "black") + 
   labs(title = "Obvyklá délka spánku v hodinách",
        x = "počet hodin",
        y = "počet respondentů") + 
   theme_classic() + 
   theme(panel.grid.major = element_blank(),   # odstraní hlavní mřížku
         panel.grid.minor = element_blank())   # odstraní menší mřížku
-
-help.search("drop_na")
-library(tidyr)
 
 
 # histogram s více kategoriemi, vzdělání + úprava velikostí a stylu fontů 
@@ -123,13 +114,11 @@ d %>%
         axis.text.x = element_text(size = 12),
         axis.text.y = element_text(size = 10))
 
-
-
 # facety 
 d %>% 
   drop_na(obvykla_delka_spanku) %>% 
   ggplot(aes(x = obvykla_delka_spanku, fill = vzdelani_3kat)) + 
-  geom_histogram(binwidth = 1,  position = "dodge", alpha = 0.8) +
+  geom_histogram(binwidth = 1,  position = "dodge", alpha = 0.5) +
   facet_wrap(~ vzdelani_3kat) + # Přidání facetování na základě kategorie vzdělání
   labs(
     title = "Obvyklá délka spánku v hodinách podle vzdělání",
@@ -137,7 +126,7 @@ d %>%
     y = "Počet respondentů",
     fill = "Vzdělání"
   ) +
-  # scale_fill_manual(values = c("red", "#00BFFF", "green")) + # Nastavení barev pro jednotlivé kategorie
+  scale_fill_manual(values = c("red", "#00BFFF", "green")) + # Nastavení barev pro jednotlivé kategorie
   theme_minimal() +
   theme(
     plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),
@@ -332,9 +321,6 @@ ggplot(data = d, aes(x = pohlavi, y = obvykla_delka_spanku, color = pohlavi)) +
 # Uděljte boxplot pro věkové rozložení, vyzkoušejte si změnit titulek, velikost titulku, změnu theme
 # zkuste udlěat 3 boxploty v 1 grafu vedle sebe, podle vzdělání 1 pro lidi se ZŠ, SŠ a VŠ vzděláním
 
-# TODO vyzkoušejte si na svách vlastních datech udělat jiný zde neuvedený graf z rodiny ggplot, inspirace zde 
-# https://r-graph-gallery.com/ 
-
 
 # sloupcový horizontální pro baterii otázek -------------------------------
 # příklad grafu, který jsem použila, se smyšlenými hodnotami 
@@ -356,7 +342,7 @@ data_long <- co_chybi %>%
   pivot_longer(cols = starts_with("cochybi"), names_to = "otazka", values_to = "odpoved") %>%
   filter(!is.na(odpoved)) %>%  # Odstranění řádků s chybějícími odpověďmi
   group_by(otazka) %>%
-  reframe(pocet_odpovedi = if_else(str_detect(otazka, "other"), sum(odpoved != ""), sum(odpoved == "Ano"))) %>% # pro dpovědi jiné se počítá počet neprázdných odpovědí, pro sotatní ano
+  reframe(pocet_odpovedi = if_else(str_detect(otazka, "other"), sum(odpoved != ""), sum(odpoved == "Ano"))) %>%
   ungroup() %>%
   mutate(celkem = celkem_respondentu,  # Nastavení stejné hodnoty 'celkem' pro všechny řádky
          procento = round(pocet_odpovedi / celkem * 100, digits = 1),
@@ -402,9 +388,9 @@ ggplot(data_long, aes(x = fct_reorder(otazka, pocet_odpovedi), y = pocet_odpoved
     "pomoc OZP" =  "#ddc028",
     "pomoc osobám v pracovní neschopnosti" =  "#ddc028",
     "pomoc seniorům" =  "#ddc028"
-  ), guide = "none") + # odstraní legendu
+  ), guide = "none") +
   coord_flip() +  # Otočení grafu
-  geom_text(aes(label = paste0(procento, " (", pocet_odpovedi, ")")), hjust = -0.1) + # popisky - spojení procent a hodnot a horizontální umístění
+  geom_text(aes(label = paste0(procento, " (", pocet_odpovedi, ")")), hjust = -0.1) +
   scale_x_discrete(limits = rev(levels(data_long$otazka))) +  # Rozšíření limitu osy x
   scale_y_continuous(limits = c(0, 800), expand = c(0, 0)) +  # Nastavení limitu osy y
   labs(y = "Podíl a počet respondentů, kteří vnímají dané potřeby jako nedostatečně pokryté", 

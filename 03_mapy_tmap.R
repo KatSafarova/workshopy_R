@@ -51,7 +51,6 @@ df_orp <- get_processed_data("orp_pocty_projektu_cvicna_data.rds")
 
 # mapy --------------------------------------------------------------------
 
-
 # načtení polygonů a sjednocení názvů proměnné  
 kraj <- RCzechia::kraje()
 orp <- RCzechia::orp_polygony()
@@ -81,9 +80,38 @@ orp_mapy <-  orp %>%
   left_join(orp_bezi, by ="orp") %>% 
   mutate(pocet_respondentu = if_else(is.na(pocet_respondentu), 0, pocet_respondentu)) 
 
+rm(orp_bezi)
 
 
 # počty -------------------------------------------------------------------
+
+# kraje  
+pocty_kraj1 <- tm_shape(kraj_mapy) +
+  tm_polygons("pocet_respondentu", palette = zm5, style="pretty", title = "Celkem projektů \na soc. služeb v krajích", 
+              as.count=TRUE, legend.show=FALSE, border.col = "black") 
+pocty_kraj1 
+
+
+pocty_orp1 <- tm_shape(orp_mapy) +
+  tm_polygons("pocet_respondentu", palette = zm5, style="pretty", title = "Celkem projektů \na soc. služeb v krajích", 
+              as.count=TRUE, legend.show=FALSE, border.col = "black") 
+pocty_orp1
+
+
+
+# další styly
+# An alternative is the style argument. This allows the user to automatically create breaks by specifying algorithms.
+# Among others, the following styles can be passed:
+# style = equal: Splits the variable into intervals of equal length. Should only be used if the variable follows an uniform distribution.
+# style = quantile: Splits the variable into quantiles. Consequently there are the same number of observations in each interval.
+# style = jenks: Identifies groups with similar values and maximizes the difference between them.
+# style = cont: Displays many colors over a continuous palette.
+# style = cat: Colors each category individually for categorical data.
+# style = fixed - pevně dané hranice kategorií tzv. breaks
+# style = order - order style uses a smooth gradient with a large number of colors, but the values on the legend do not change linearly
+# https://r-tmap.github.io/tmap-book/visual-variables.html
+
+
 # kraje  
 pocty_kraj <- tm_shape(kraj_mapy) +
   tm_polygons("pocet_respondentu", palette = zm5, style="pretty", title = "Celkem projektů \na soc. služeb v krajích", 
@@ -116,6 +144,7 @@ tmap_save(pocty_kraj, "mapy/kraj_pocty_uprchliku.png", height = 9,  width = 15.9
 
 
 
+
 # počty ORP 
 kraj_shape <- tm_shape(kraj_mapy) + 
   tm_borders(lwd = 2, col = "black")  
@@ -141,18 +170,6 @@ pocty_orp <- tm_shape(orp_mapy) +
 pocty_orp
 
 tmap_save(pocty_orp, "mapy/orp_pocty_uprchliku.png", height = 9, width = 15.98, units = "cm")
-
-
-# další styly
-# An alternative is the style argument. This allows the user to automatically create breaks by specifying algorithms.
-# Among others, the following styles can be passed:
-# style = equal: Splits the variable into intervals of equal length. Should only be used if the variable follows an uniform distribution.
-# style = quantile: Splits the variable into quantiles. Consequently there are the same number of observations in each interval.
-# style = jenks: Identifies groups with similar values and maximizes the difference between them.
-# style = cont: Displays many colors over a continuous palette.
-# style = cat: Colors each category individually for categorical data.
-# https://r-tmap.github.io/tmap-book/visual-variables.html
-
 
 
 # počty ORP, style = "cont"
@@ -186,8 +203,8 @@ tmap_save(pocty_orp, "mapy/orp_pocty_uprchliku_style_cont.png", height = 9, widt
 
 
 
-# počty ORP jen Ústecký a Karlovarský kraj
-# vyfiltrujeme si data, i hrnaici krajů jen pro vybrané 2 kraje
+# počty ORP jen vybrané kraje: Ústecký a Karlovarský kraj -----------------
+# příprava: vyfiltrujeme si data, i hrnaici krajů jen pro vybrané 2 kraje
 kraj_mapy2kraje <- kraj_mapy %>% 
   filter(kraj %in% c("Ústecký kraj", "Karlovarský kraj"))
 

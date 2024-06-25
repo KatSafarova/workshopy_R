@@ -13,7 +13,11 @@ library(forcats) # práce s faktory
 # font_import()  # Toto může chvíli trvat
 # loadfonts(device = "win")  # Načte fonty pro Windows
 
-
+# více o ggplotu - učební zdroje 
+# https://www.youtube.com/watch?v=qnw1xDnt_Ec 
+# https://sociology-fa-cu.github.io/uvod-do-r-kniha/obsah-grafu.html
+# https://www.youtube.com/watch?v=IWXcw6NHM6E&list=PLBnFxG6owe1HRvUL6A5QNF_8ujP8NdLMc
+# https://petrbouchal.xyz/eval2020/ 
 
 # načtení dat  -------------------------------------------------------------
 
@@ -23,7 +27,6 @@ d <- readRDS("data/processed/cvicny_dataset_clean.rds")
 # HISTOGRAM ---------------------------------------------------------------
 
 # histogram base plot---------------------------------------------------------------
-
 hist(d$obvykla_delka_spanku)
 
 # Otevření grafického zařízení pro PNG soubor
@@ -96,6 +99,9 @@ d %>%
   theme(panel.grid.major = element_blank(),   # odstraní hlavní mřížku
         panel.grid.minor = element_blank())   # odstraní menší mřížku
 
+help.search("drop_na")
+
+library(tidyr)
 
 # histogram s více kategoriemi, vzdělání + úprava velikostí a stylu fontů 
 d %>% 

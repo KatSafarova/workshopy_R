@@ -44,7 +44,10 @@ library(janitor)
 
 d <- read.xlsx("data/input/2024_04_pocty_ua_zaku_uprchliku_cvicny_dataset.xlsx", startRow = 2, sheet = "orp")
 
-
+# poznámka: můžeš použít i balík readxl - ten je o něco rychlejší,
+# data vrací ve formátu tibble (je to varianta data.frame, lépe se zobrazuje v konzoli)
+# a balík se o něco snadněji instaluje.
+# Na ukládání dat do excelu má brášku/ségru s názvel writexl.
 
 
 # Nápověda (úkol 0) ----------------------------------------------------------------

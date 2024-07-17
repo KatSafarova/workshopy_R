@@ -1,4 +1,3 @@
-
 library(readr)
 library(dplyr)
 library(openxlsx)
@@ -25,13 +24,14 @@ zm5_0 <- c("#FFFFFF", "#f0f9e8", "#bae4bc", "#7bccc4", "#43a2ca", "#0868ac")
 
 
 # tmaptools::palette_explorer()
-# 
+
+modra <- get_brewer_pal("Blues", n = 6)
+
 # # zobrazení všech palet 
 # display.brewer.all()
-# 
+
 # # Zobrazení palety "Blues" s pěti barvami
-# display.brewer.pal(n = 35, name = "Blues")
-# 
+# display.brewer.pal(n = 5, name = "Blues")
 # blues7 <- get_brewer_pal("Blues", n = 7)
 
 
@@ -44,8 +44,8 @@ zm5_0 <- c("#FFFFFF", "#f0f9e8", "#bae4bc", "#7bccc4", "#43a2ca", "#0868ac")
 
 # načtení dat -------------------------------------------------------------
 
-df_kraj <- get_processed_data("kraje_pocty_projektu_cvicna_data.rds")
-df_orp <- get_processed_data("orp_pocty_projektu_cvicna_data.rds")
+df_kraj <- readRDS("data/processed/kraje_pocty_projektu_cvicna_data.rds")
+df_orp <- readRDS("data/processed/orp_pocty_projektu_cvicna_data.rds")
 
 
 
@@ -81,14 +81,16 @@ orp_mapy <-  orp %>%
   mutate(pocet_respondentu = if_else(is.na(pocet_respondentu), 0, pocet_respondentu)) 
 
 rm(orp_bezi)
+rm(orp)
 
 
 # počty -------------------------------------------------------------------
+colnames(kraj_mapy)
 
 # kraje  
 pocty_kraj1 <- tm_shape(kraj_mapy) +
-  tm_polygons("pocet_respondentu", palette = zm5, style="pretty", title = "Celkem projektů \na soc. služeb v krajích", 
-              as.count=TRUE, legend.show=FALSE, border.col = "black") 
+  tm_polygons("pocet_respondentu", palette = mf5, style="pretty", n=4, title = "Celkem projektů \na soc. služeb v krajích", 
+              as.count=TRUE, legend.show=FALSE, border.col = "red") 
 pocty_kraj1 
 
 
@@ -114,9 +116,9 @@ pocty_orp1
 
 # kraje  
 pocty_kraj <- tm_shape(kraj_mapy) +
-  tm_polygons("pocet_respondentu", palette = zm5, style="pretty", title = "Celkem projektů \na soc. služeb v krajích", 
-              as.count=TRUE, legend.show=FALSE, border.col = "black") +
-  tm_text("pocet_respondentu", size = 0.6, xmod = 0, ymod = -0.25) + 
+  tm_polygons("pocet_respondentu", palette = zm5, style="order", title = "Celkem projektů \na soc. služeb v krajích", 
+              as.count=FALSE, legend.show=TRUE, border.col = "black") +
+  tm_text("pocet_respondentu", size = 0.6, xmod = 0, ymod = -0.25, remove.overlap = TRUE) + 
   tm_credits(text = "Cvičná data pro účely workshopu.", size = 0.9, position=c(0.0, 0.05)) +  
   tm_layout(frame = FALSE,
             legend.outside = FALSE, legend.format = list(text.separator = "až"),
@@ -130,7 +132,6 @@ pocty_kraj <- tm_shape(kraj_mapy) +
             main.title.fontface = "bold",  
             fontfamily = "Arial")  
 
-
 pocty_kraj
 
 tmap_save(pocty_kraj, "mapy/kraj_pocty_uprchliku.png", height = 9,  width = 15.98, units = "cm")
@@ -141,7 +142,6 @@ tmap_save(pocty_kraj, "mapy/kraj_pocty_uprchliku.png", height = 9,  width = 15.9
 # library(extrafont)
 # font_import()  # Toto může chvíli trvat
 # loadfonts(device = "win")  # Načte fonty pro Windows
-
 
 
 

@@ -40,7 +40,7 @@ library(janitor)
 
 # úkoly -------------------------------------------------------------------
 
-# 0. Načti si dataset "2024_04_pocty_ua_zaku_uprchliku_upraveno" na úrovni ORP - je ve složce data - input
+# 0. Načti data ze souboru "2024_04_pocty_ua_zaku_uprchliku_upraveno.xlsx" na úrovni ORP - soubor je ve složce data => input
 
 d <- read.xlsx("data/input/2024_04_pocty_ua_zaku_uprchliku_cvicny_dataset.xlsx", startRow = 2, sheet = "orp")
 

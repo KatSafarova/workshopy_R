@@ -5,7 +5,9 @@ library(dplyr)  # data manipulation
 library(stringr) # práce s textovými proměnnými 
 library(ggplot2) # grafy
 library(forcats) # práce s faktory
+library(ragg) # pro práci s fonty v PC
 
+# install.packages("ragg")
 
 # instalace fontů 
 # install.packages("extrafont")
@@ -320,13 +322,18 @@ ggplot(data = d, aes(x = pohlavi, y = obvykla_delka_spanku, color = pohlavi)) +
   labs(x = "Pohlaví", y = "Obvyklá délka spánku v hodinách", title = "Délka spánku podle věku a pohlaví",
        color = "Pohlaví") + # color upravuje název legendy 
   theme_classic() +
-  # theme(legend.position = "none") +
-  scale_color_manual(values = c("muži" = "blue", "ženy" = "red")) +
-  scale_y_continuous(breaks = seq(0, max(na.omit(d$obvykla_delka_spanku)), by = 0.5))
+  scale_y_continuous(limits = c(5, 10), 
+                     breaks = seq(5, 10, by = 0.5)) +
+  theme(legend.position = "none",
+        plot.title = element_text(size = 16, face = "bold"), 
+        axis.title.x = element_blank()) +
+  scale_color_manual(values = c("muži" = "blue", "ženy" = "red"))
 
 
 # TODO Úkol 
-# Uděljte boxplot pro věkové rozložení, vyzkoušejte si změnit titulek, velikost titulku, změnu theme
+# Uděleejte boxplot pro věkové rozložení, vyzkoušejte si změnit titulek, velikost titulku, změnu theme
+
+
 # zkuste udlěat 3 boxploty v 1 grafu vedle sebe, podle vzdělání 1 pro lidi se ZŠ, SŠ a VŠ vzděláním
 
 

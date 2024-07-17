@@ -1,6 +1,9 @@
 
 # Načtení balíčků ---------------------------------------------------------
 library(tidyverse)
+library(openxlsx)
+library(tmap)
+library(janitor)
 
 
 # TODO načti si další potřebné balíčky

@@ -204,6 +204,7 @@ kraje <- d_fin %>%
 # # 14. MAPA: udělej mapu s počty dětí v MŠ v jednotlivých ORP pomocí balíčku tmap --------
 
 # Poznámka: u propojování datasetů u tmap (např. pomocí left_join) je důležité, aby dataset s geospaciálními daty byl při spojení první - abychom připojovali k němu 
+## Načti polygony (hranice) ORP --------------------------------------------
 
 orp <- RCzechia::orp_polygony()
 

@@ -123,12 +123,7 @@ prevodnik <- read.xlsx("data/input/prevodnik.xlsx")
 
 
 # Nápověda (úkol 12) ----------------------------------------------------------------
-# názvy orp se v obou datasetech liší - v 1 je změň podle druhého datasetu (je jedno v jakém je budeš měnit) a poté opakuj spojení datasetů 
-
-d_fin <- d_fin %>%
-  select(-kraj) %>% 
-  mutate(orp = if_else(orp == "JAROMĚŘ", "Jaroměř", orp),
-         orp = if_else(orp == "Brandýs n.L.-St.Boleslav", "Brandýs nad Labem-Stará Boleslav", orp))
+# názvy orp se v obou datasetech liší - uprav je v datech tak, aby odpovídaly převodníku a poté opakuj spojení datasetů 
 
 d_fin <- left_join(d_fin, orp, by = "orp")
 
@@ -161,7 +156,7 @@ d_fin <- left_join(d_fin, orp, by = "orp")
 
 # Poznámka: u propojování datasetů u tmap (např. pomocí left_join) je důležité, aby dataset s geospaciálními daty byl při spojení první - abychom připojovali k němu 
 
-orp <- RCzechia::orp_polygony()
+## Načti polygony (hranice) ORP --------------------------------------------
 
 # vyber si paletu, která se ti líbí - bud z pouzivanych, nebo si definuj vlastni 
 # styl který se ti líbí - např pretty, ordered, fixed aj. (u fixed si můžeš definovat vlastní hranice intevralů - tzv. breaks) aj. 

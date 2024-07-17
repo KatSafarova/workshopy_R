@@ -66,6 +66,11 @@ d <- d %>% clean_names()
 
 # 2. Prozkoumej chybějící hodnoty a pokud někde jsou, tak dané ORP odfiltruj pryč 
 
+skimr::skim(d) # viz sloupec n_missing a complete_rate
+
+d |> 
+  filter(is.na(ms) | is.na(zs) | is.na(ss))
+
 d <- d %>% 
   drop_na(ms)
 

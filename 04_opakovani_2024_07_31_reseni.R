@@ -1,6 +1,9 @@
 
 # Načtení balíčků ---------------------------------------------------------
 library(tidyverse)
+library(openxlsx)
+library(tmap)
+library(janitor)
 
 
 # TODO načti si další potřebné balíčky
@@ -37,11 +40,14 @@ library(tidyverse)
 
 # úkoly -------------------------------------------------------------------
 
-# 0. Načti si dataset "2024_04_pocty_ua_zaku_uprchliku_upraveno" na úrovni ORP - je ve složce data - input
+# 0. Načti data ze souboru "2024_04_pocty_ua_zaku_uprchliku_upraveno.xlsx" na úrovni ORP - soubor je ve složce data => input
 
 d <- read.xlsx("data/input/2024_04_pocty_ua_zaku_uprchliku_cvicny_dataset.xlsx", startRow = 2, sheet = "orp")
 
-
+# poznámka: můžeš použít i balík readxl - ten je o něco rychlejší,
+# data vrací ve formátu tibble (je to varianta data.frame, lépe se zobrazuje v konzoli)
+# a balík se o něco snadněji instaluje.
+# Na ukládání dat do excelu má brášku/ségru s názvel writexl.
 
 
 # Nápověda (úkol 0) ----------------------------------------------------------------
@@ -59,6 +65,11 @@ d <- read.xlsx("data/input/2024_04_pocty_ua_zaku_uprchliku_cvicny_dataset.xlsx",
 d <- d %>% clean_names()
 
 # 2. Prozkoumej chybějící hodnoty a pokud někde jsou, tak dané ORP odfiltruj pryč 
+
+skimr::skim(d) # viz sloupec n_missing a complete_rate
+
+d |> 
+  filter(is.na(ms) | is.na(zs) | is.na(ss))
 
 d <- d %>% 
   drop_na(ms)
@@ -198,6 +209,7 @@ kraje <- d_fin %>%
 # # 14. MAPA: udělej mapu s počty dětí v MŠ v jednotlivých ORP pomocí balíčku tmap --------
 
 # Poznámka: u propojování datasetů u tmap (např. pomocí left_join) je důležité, aby dataset s geospaciálními daty byl při spojení první - abychom připojovali k němu 
+## Načti polygony (hranice) ORP --------------------------------------------
 
 orp <- RCzechia::orp_polygony()
 

@@ -1,11 +1,17 @@
 
 # Načtení balíčků ---------------------------------------------------------
-library(tidyverse)
-library(openxlsx)
-library(tmap)
-library(janitor)
-library(stringr)
-
+library(tidyverse) # základní balíček pro "data science" obsahuje i ggplot2 nebo stringr https://www.tidyverse.org/ 
+library(openxlsx) # pro naččtení excelu 
+library(janitor) # funke clean_names()
+# library(stringr) # práce s textem - vyhledávání určitých patternů apod. - je už v tidyverse
+# library(forcats) # práce s factory - je už v tidyverse
+library(tmap) # pro mapy
+library(sf) # pro mapy
+# library(ggplot2) # pro grafy - je už v tidyverse
+library(ggtext) # rozšíření k ggplotu  Improved Text Rendering Support for 'ggplot2'
+library(skimr) # souhrnné statistiky
+library(RColorBrewer) # barevné palety pro grafy či mapy
+library(tmaptools) # barevné palety pro grafy či mapy
 
 
 # TODO načti si další potřebné balíčky
@@ -73,7 +79,7 @@ d <- d %>% clean_names()
 
 skimr::skim(d) # viz sloupec n_missing a complete_rate
 
-d |> 
+d |> # |> je jiné zobrazení pipe operátoru %>% 
   filter(is.na(ms) | is.na(zs) | is.na(ss))
 
 d <- d %>% 
@@ -93,9 +99,10 @@ d <- d %>%
 # pomocí funkce slice_max()
 nejvice_5_ms <- d %>% 
   slice_max(ms, n = 5) %>% 
-  select(orp, ms)
+  select(orp, ms) %>% 
+  print()
 
-# nebo s arrange() a head()
+# nebo s arrange() a head() - další varianta, jak to jde udělat (jistě ne poslední možná)
 nejvice_5_ms <- d %>% 
   arrange(desc(ms)) %>% 
   head(5) %>% 
@@ -143,7 +150,6 @@ check <- d %>%
 prevodnik <- read.xlsx("data/input/prevodnik.xlsx")
 
 # 8 uprav převodník, tak, aby nejnižší jednotka byla ORP a uloz to do datasetu orp - měl/a bys získat dataset se 206 řádky (resp. 205 protože 1 jsme odfiltrovali)
-
 orp <- prevodnik %>% 
   select(orp, kraj) %>% 
   distinct()
@@ -182,7 +188,6 @@ d_fin <- d %>%
     konzervator = sum(konzervator, na.rm = TRUE),
     .groups = 'drop'
   )
-
 
 # alternativně se dají sečíst všechny numerické hodnoty
 # d_fin <- d %>%
@@ -236,19 +241,46 @@ kraje <- d_fin %>%
 
 
 # TODO: nezapomeň si finální nebo rozpracovaný skript uložit!
-  
+
+saveRDS(d_fin, "data/processed/procvicovaci_workshop_rozpracovany.rds") # můžeme definovat do jaké složky se to ukládá, vždy v rámci hlavního adresáře s projektem workshopy_R
 
 # vizualizace - vycházej ze skriptů z minulého workshopu - vyber si graf, nebo mapu -------------------------------------------------------------
 
 
 # # 13. GRAF: udělej sloupcový graf s počty dětí v ZŠ v jednotlivých krajích --------
-
-
 # jestli bude horizontální nebo vertiální je na tobě
 # vyber si barvu, která se ti líbí 
 # uprav theme, jak se ti líbí 
 # uprav název grafu, popisky os 
 # uprav velikost a font písem, jak se ti líbí 
+
+
+# relativně jednoduchý příklad zde, šlo by dál upravovata vylepšovat 
+kraje %>% 
+  ggplot(aes(x = fct_reorder(kraj, -suma_zs), y = suma_zs)) + # fct_reorder řadí proměnnou graf podle suma_zs, - předtím dělá, že je to sestupně
+  geom_col(fill = "blue", width = 0.8) +
+  geom_text(aes(label = suma_zs), vjust = -0.5, size = 3) + # labely nad sloupci 
+  labs(x = "Kraj", # popisky os, titulku, poznámky
+       y = "Počet dětí", 
+       title = "Počet ukrajinských uprchlických dětí v ZŠ v jednotlivých krajích",
+       caption = "Zdroj: Data MŠMT k dubnu 2024") +
+  scale_y_continuous(limits = c(0, 8000), 
+                     breaks = seq(0, 8000, by = 1000)) + # upravený rozsah a breaks na ose y
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1), # nakloněné popisky na ose x aby se tam lépe vešly
+        panel.grid.major = element_blank(), # odstranění mřížky v pozadí 
+        panel.grid.minor = element_blank(), # odstranění 2. mřížky v pozadí 
+        axis.title.y =  element_blank(), # skrytí názvu osy y
+        axis.title.x =  element_blank(), # skrytí názvu osy y
+        plot.caption = element_textbox(color = "#505050"), # barva poznámky pod grafem
+        plot.title = element_text(size = 12, face = "bold"), # úprava podoby titulku 
+        plot.margin = unit(c(0.1, 0.5, 0.5, 1.5), "cm")) # okraje grafu, údaje pro top, right, left, bottom - zkratka trouble 
+
+# pozor na to, že grafy i mapy vypadají často trochu jinak v Rstudiu a pak v uloženém obrázku (zejména okraje, to jak se vchází texty), doporučuju přohlížet finální výstup a ideálně i tam, kde má být umístěn - např. ve wordu, na webu apod.
+
+# kód níže ukládá poslední graf, případně lze grafy ukládat do konkrétních objektů - např. graf1 <- kraje %>% ... 
+ggsave("grafy/pocty_deti_uprchliku_na_zs_kveten_2024.png", plot = last_plot(), bg= "white", height = 9, width = 15.98, unit = "cm", dpi = 300)
+
 
 
 
@@ -257,7 +289,13 @@ kraje <- d_fin %>%
 # Poznámka: u propojování datasetů u tmap (např. pomocí left_join) je důležité, aby dataset s geospaciálními daty byl při spojení první - abychom připojovali k němu 
 ## Načti polygony (hranice) ORP --------------------------------------------
 
-orp <- RCzechia::orp_polygony()
+orp_pro_mapy <- RCzechia::orp_polygony()
+
+orp_pro_mapy <- orp_pro_mapy %>% 
+  clean_names() %>% 
+  rename(orp = naz_orp)
+
+orp_mapy <- left_join(d_fin, orp_pro_mapy, by = "orp")
 
 # vyber si paletu, která se ti líbí - bud z pouzivanych, nebo si definuj vlastni 
 # styl který se ti líbí - např pretty, ordered, fixed aj. (u fixed si můžeš definovat vlastní hranice intevralů - tzv. breaks) aj. 
@@ -265,11 +303,62 @@ orp <- RCzechia::orp_polygony()
 
 
 # zobrazení všech barevných palet 
-# display.brewer.all()
+display.brewer.all()
 
-# Zobrazení konkrétní palety - zde "Blues" se zadnaým počtem barev - zde v příkladu 5, uložení dané palety
-# display.brewer.pal(n = 5, name = "Blues")
-# blues7 <- get_brewer_pal("Blues", n = 7)
+# ulozeni 1 z palet z Brewwer pal 
+cervenofialova <- get_brewer_pal("RdPu", n = 5)  # reálně bych volila kratší název, zde pro názornost 
 
-# TODO: nezapomeň si finální nebo rozpracovaný skript uložit!
+# můžeme nějakou barvu (1 či více k paletě přidat), dále lze samozřejmě definovat i své barvy skrze vektor barev
 
+# Přidání bílé barvy na začátek palety
+cervenofialova_s_bilou <- c("#FFFFFF", cervenofialova)
+zm5_0 <- c("#FFFFFF", "#f0f9e8", "#bae4bc", "#7bccc4", "#43a2ca", "#0868ac")
+
+
+# pro získání souřadnic krajů pro obrysy krajů (pokud je chceme v mapě s orp mít)
+kraj <- RCzechia::kraje()
+
+kraj <- clean_names(kraj) %>% 
+  rename("kraj" ="naz_cznuts3")
+
+
+# obrys krajů, který lze přidat jako další vrstvu do mapy s ORP
+kraj_shape <- tm_shape(kraj) + 
+  tm_borders(lwd = 2, col = "black")  
+
+
+# z nějakého důvodu mi R bez této části kódu psalo chybu "Error: Object orp_mapy is neither from class sf, stars, Spatial, Raster, nor SpatRaster"
+# daný kód u mě problé=m vyřešil (napsal mi ho chatgpt)
+if (!inherits(orp_mapy, "sf")) {
+  orp_mapy <- st_as_sf(orp_mapy)
+}
+
+# pozor na to, že grafy i mapy vypadají často trochu jinak v Rstudiu a pak v uloženém obrázku (zejména okraje, to jak se vchází texty), doporučuju přohlížet finální výstup a ideálně i tam, kde má být umístěn - např. ve wordu, na webu apod.
+
+# relativně jednoduchý příklad mapy zde, šlo by dál upravovat a vylepšovat 
+
+pocty_ms <- tm_shape(orp_mapy) +
+  tm_polygons("ms", # jaká proměnná se zobrazuje
+              palette = cervenofialova, # barevná paleta
+              style="fixed", breaks = c(0, 50, 100, 200, 600, 1375), # vlastní nastavení hodnot (např. u stylu "order" se lišila výrazněji jen Praha)
+              title = "Počty dětí v MŠ", 
+              as.count=TRUE, # jestli se kategorie překrývají 1 -5 a 6-10 nebo 1-5 a 5-10...
+              legend.show=TRUE, 
+              border.col = "black") + 
+  # tm_text("ms", size = 0.6, xmod = 0, ymod = -0.25, remove.overlap = TRUE) + # text s čísly na úrovni ORP není dobře vidět 
+  tm_credits(text = "Zdroj: MŠMT, data k dubnu 2024.", size = 0.9, position=c(0.0, 0.05)) +  # poznámka k atům, velikost, pozice
+  tm_layout(frame = FALSE,
+            legend.outside = FALSE, legend.format = list(text.separator = "až", big.mark = " "),
+            legend.title.size = 1.1, legend.text.size = 0.8, legend.title.fontface = "bold",
+            legend.position = c(0.9, 0.65), # pozice legendy - 1. číslo na soe x (horizontálně - větší víc doprava), 2. číslo vertikálně, větší víc nahoru, možné použít i výrazy jako "left", "right" "top", "bottom", nebo jejiich kombinaci
+            main.title = "Počty ukrajinských dětí uprchlíků v MŠ", 
+            main.title.size = 1.1,
+            main.title.color = "#0868ac",
+            main.title.fontface = "bold",
+            inner.margins = c(0.12,0.0,0.02,0), # Vector of four values specifying the bottom, left, top, and right margin
+            outer.margins = c(0.01,-0.3,0.01,-0.2)) +
+  kraj_shape  # Přidání vrstvy s hranicemi krajů
+
+pocty_ms
+
+tmap_save(pocty_ms, "mapy/pocty_deti_ukrajinskych_uprchliku_v_ms.png", height = 9,  width = 15.98, units = "cm", dpi = 300)

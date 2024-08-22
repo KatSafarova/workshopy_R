@@ -138,7 +138,7 @@ nejvetsi_narust <- d_zmena %>%
   slice_head(n=5) %>%
   print()
 
-nejvetsi_pokles <- d_change %>%
+nejvetsi_pokles <- d_zmena %>%
   arrange(zmena) %>%
   slice_head(n=5) %>%
   print()

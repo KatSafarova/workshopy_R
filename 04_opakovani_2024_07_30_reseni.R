@@ -254,6 +254,44 @@ saveRDS(d_fin, "data/processed/procvicovaci_workshop_rozpracovany.rds") # může
 # uprav název grafu, popisky os 
 # uprav velikost a font písem, jak se ti líbí 
 
+kraje %>% 
+  ggplot(aes(x = kraj, y = suma_zs)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Vizualizace suma_zs pro jednotlivé kraje",
+       x = "Kraj",
+       y = "Suma ZS")
+# 
+# # Základní chování geom_bar()
+# # Defaultní chování (stat = "count"): Pokud použiješ geom_bar() bez specifikace stat, bude výchozí chování počítat počet výskytů každé kategorie na ose x. To znamená, že pokud máš kategorické proměnné na ose x, geom_bar() spočítá, kolikrát se každá kategorie vyskytuje a zobrazí tyto hodnoty jako výšku sloupců.
+# 
+# 
+# ggplot(data = df, aes(x = category)) +
+#   geom_bar()
+# # Tento kód by vykreslil sloupcový graf s výškou sloupců odpovídající počtu výskytů jednotlivých kategorií v datasetu.
+# 
+# # Hodnoty argumentu stat
+# # stat = "count" (výchozí hodnota): Počítá počet výskytů každé hodnoty (kategorie) na ose x.
+# 
+# 
+# ggplot(data = df, aes(x = category)) +
+#   geom_bar(stat = "count")
+# 
+# # stat = "identity": Pokud již máš vypočtené hodnoty, které chceš zobrazit na ose y, použiješ stat = "identity". V tomto případě poskytneš hodnoty y explicitně a geom_bar() je vykreslí bez jakékoli další agregace.
+# 
+# 
+# ggplot(data = df, aes(x = category, y = value)) +
+#   geom_bar(stat = "identity")
+# 
+# # stat = "bin": Toto se obvykle používá s numerickými daty a rozděluje data do košů (bins). geom_bar() s stat = "bin" je prakticky ekvivalentní s použitím geom_histogram().
+# 
+# ggplot(data = df, aes(x = numeric_variable)) +
+#   geom_bar(stat = "bin")
+# 
+# # stat = "summary": Používá se ke shrnutí dat (např. průměr, medián) a zobrazení agregovaných hodnot.
+# ggplot(data = df, aes(x = category, y = value)) +
+#   geom_bar(stat = "summary", fun = "mean")
+
 
 # relativně jednoduchý příklad zde, šlo by dál upravovata vylepšovat 
 kraje %>% 

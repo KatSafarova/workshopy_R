@@ -1,10 +1,10 @@
 
 # načtení balíčků
 library(tidyverse)
-library(RColorBrewer) # barevné palety
-library(janitor) # čištění
 library(openxlsx) # načítání souborů
 library(webshot2)
+library(officer)
+
 
 # představení různých balíčků pro tvorbu a formátování tabulek
 # https://r-graph-gallery.com/table.html
@@ -12,7 +12,8 @@ library(webshot2)
 # https://themockup.blog/posts/2022-06-13-gtextras-cran/
 
 # Načtení balíčků pro tabulky
-library(gt) # https://www.youtube.com/watch?v=gh_e6tmjhLA 
+library(gt) # oblíběný balíček, dobře funguje s tidyverse, export do png, wordu, html...
+# https://www.youtube.com/watch?v=gh_e6tmjhLA 
 #https://www.youtube.com/watch?v=jptX745mp7M 
 #https://www.youtube.com/watch?v=22YpMXufSvw&list=PLBnFxG6owe1EzCt-QHgLxKzgRY3GvOHuw&index=9
 # https://jthomasmock.github.io/gtExtras/reference/
@@ -22,8 +23,20 @@ library(gtExtras)
 # https://jthomasmock.github.io/gtExtras/reference/ 
 # https://themockup.blog/posts/2022-06-13-gtextras-cran/
 
-library(rpivotTable) #https://www.youtube.com/watch?v=98UvbWW6fLo
+library(flextable) # umožňuje export jako png, word, ppt, html... 
+
+# odsud dál jsou jen stručně nastíněny nebo uvedeny v přehledu, nutné více prozkoumat individuálně 
+library(rpivotTable) #excel style kontingenční tabulky umožňující přetahování proměnných do sloupců, řádků, seskupováním minimálně pro ty, kdo mají rádi excel vypadají dost zajímavě  #https://www.youtube.com/watch?v=98UvbWW6fLo
 library(htmlwidgets)
+
+# interaktivní ------------------------------------------------------------
+library(formattable)
+library(reactable) #https://www.youtube.com/watch?v=E3ubwU5Uyqw 
+#https://www.youtube.com/watch?v=mrGKySJ-cJc&list=PLBnFxG6owe1EzWjq_rOfdWcWP8QBxcm58&index=34
+library(DT)
+
+# (nejen) v RMarkdownu
+library(kableExtra)
 library(knitr)
 
 # statistické -------------------------------------------------------------
@@ -32,6 +45,7 @@ library(gtsummary) #tbl_summary() #https://www.youtube.com/watch?v=gohF7pp2XCg
 library(tableone) # sd, hladina p
 # https://rempsyc.remi-theriault.com/articles/table # apa style tables
 
+
 # korelační matice
 library(corrgram)
 library(PerformanceAnalytics)
@@ -39,17 +53,6 @@ library(ggcorrplot)
 library(Hmisc)
 library(corrplot)
 library(htmlTable)
-
-# interaktivní ------------------------------------------------------------
-library(formattable)
-library(flextable)
-library(reactable) #https://www.youtube.com/watch?v=E3ubwU5Uyqw 
-#https://www.youtube.com/watch?v=mrGKySJ-cJc&list=PLBnFxG6owe1EzWjq_rOfdWcWP8QBxcm58&index=34
-library(DT)
-
-# (nejen) v RMarkdownu
-library(kableExtra)
-library(knitr)
 
 set.seed(45) # pro replikovatelnost
 
@@ -106,10 +109,11 @@ gt_table1 <- df1 %>%
       columns = Score,
       rows = Score >= 90  # Zvýraznění hodnot nad 90
     )
-  )
+  ) 
 
 # Zobrazení tabulky
 gt_table1
+
 
 my_palette <- brewer.pal(4, "Set1")  # 4 barvy z palety "Set1"
 display.brewer.pal(4, "Set1")
@@ -140,7 +144,7 @@ gt_table2 <- df1 %>%
   ) %>% 
   # Nastavení šedé barvy pro ostatní hodnoty ve sloupci Score
   tab_style(
-    style = cell_text(color = "grey15"),  # Bílé písmo pro ostatní hodnoty
+    style = cell_text(color = "grey15"),  
     locations = cells_body(
       columns = Score,
       rows = Score < 90  # Aplikace na hodnoty menší než 90
@@ -224,8 +228,17 @@ Sys.setenv(CHROMOTE_CHROME = "C:/Users/katerina.safarova/AppData/Local/Google/Ch
 # Export do PNG
 gtsave(gt_table1, "tabulky/gt_table1.png", vwidth = 1772, vheight = 1181, expand = 10)
 
+# export do wordu 
+gtsave(gt_table1, "tabulky/gt_table1.docx", vwidth = 1772, vheight = 1181, expand = 10)
+
+# uložení v html formátu
+gtsave(gt_table1, "tabulky/gt_table1.html")
+
+
+# další formáty https://gt.rstudio.com/reference/gtsave.html 
 
 # flextable ---------------------------------------------------------------
+# https://epirhandbook.com/new_pages/tables_presentation.html
 
 # flextable 
 flextable(df1) %>%
@@ -235,15 +248,27 @@ flextable(df1) %>%
 # Vytvoření flextable s podmíněným formátováním
 ft <- flextable(df1) %>%
   set_caption("Student Scores Summary") %>%  # Přidání titulku
+  bg(part = "header", bg = "white") %>%  # Bílé pozadí pro záhlaví (názvy proměnných)
+  bg(bg = "white") %>%  # Bílé pozadí pro celou tabulku
   bg(i = ~ Score > 90, j = "Score", bg = "green") %>%  # Zelená pro hodnoty nad 90
   bg(i = ~ Score >= 85 & Score <= 90, j = "Score", bg = "yellow") %>%  # Žlutá pro hodnoty mezi 85 a 90
   bg(i = ~ Score < 85, j = "Score", bg = "red") %>%  # Červená pro hodnoty pod 85 (není zde relevantní, ale pro ukázku)
   bold(i = ~ Score >= 90)  # Zvýraznění hodnot nad 90 tučným písmem
 
-# Zobrazení flextable
-ft
-# Export do Wordu nebo PowerPointu
+
+# Export do Wordu, PPT, PNG, HTML...
 save_as_docx(ft, path = "tabulky/table_flextable.docx")
+save_as_image(ft, path = "tabulky/table_flextable.png", res = 300)
+save_as_pptx(ft, path = "tabulky/table_flextable.pptx")
+save_as_html(ft, path = "tabulky/table_flextable.html")
+# a další https://cran.r-project.org/web/packages/flextable/flextable.pdf 
+
+ft # náhled ve viewer okně 
+
+# zobrazí náhledy už v daném souboru 
+print(ft, preview = "pptx")
+print(ft, preview = "docx")
+
 
 # Vysvětlení:
 #   bg(i = ..., j = ..., bg = ...): Tento formátování aplikuje podmíněné zbarvení na konkrétní buňky. i odkazuje na řádky, které mají být formátovány, a j na sloupec (v tomto případě "Score"). Používáme různé podmínky pro různé rozsahy hodnot.
@@ -252,6 +277,7 @@ save_as_docx(ft, path = "tabulky/table_flextable.docx")
 
 
 # další balíčky -----------------------------------------------------------
+# mají také všechny spoustu možností, zde jen na ukázku 
 
 # formattable
 formattable(df1, list(

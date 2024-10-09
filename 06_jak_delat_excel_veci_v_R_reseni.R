@@ -571,7 +571,7 @@ options(digits = 5)
 # který student má u skóre třetí nejvyšší percentil
 s %>%
   arrange(desc(percentily)) %>%  # Seřazení od nejvyššího k nejnižšímu
-  slice(3) %>%   # Vyber druhý řádek (druhý nejvyšší)
+  slice(3) %>%   
   select(id, jmeno, prijmeni, final_skore_celkem, percentily) %>% 
   print()
 

@@ -36,7 +36,6 @@ studenti <- read.xlsx("data/input/cviceni_excel_ws_rijen_2024.xlsx", sheet = "st
 
 
 # čištění názvů proměnných  -----------------------------------------------
-
 orp <- orp %>%
   clean_names()
 
@@ -86,6 +85,11 @@ orp <- orp %>%
          )
   )
 
+orp %>% 
+  filter(kraj == "Kraj Vysočina") %>% 
+  select(kraj, kraj_zkracene_1_slovo, kraj_spravne_1_slovo, nuts2) %>% 
+  distinct(kraj, .keep_all = TRUE) %>% 
+  print()
 
 # tabyl z balíčku janitor 
 tabyl(orp$kraj_spravne_1_slovo)
@@ -102,10 +106,8 @@ orp <- orp %>%
 # počty všech obcí s "nad" oddělenými mezerami
 orp %>%
   filter(str_detect(obec, " nad ")) %>%
-  count()
-# když bychom chtěli vidět seznam, můžeme přidat
-  # select(obec) %>% 
-  # pull()
+  select(obec) %>%
+  pull()
 
 # počet jedinečných ORP začínajících na "Kr"
 orp %>%
@@ -119,6 +121,7 @@ orp %>%
   distinct(obec) %>%
   count()
 
+# TODO upravit pro českou diakritiku
 orp %>%
   filter(str_ends("á", obec)) %>%
   distinct(obec) %>%
@@ -131,6 +134,7 @@ orp %>%
 
 
 # ÚKOL 1 --------------------------------------------------------------------
+# TODO spočítej, kolik jedinečných orp končí na na "ov"
 
 
 # pokračování cvičení po ÚKOLU 1 ------------------------------------------
@@ -139,7 +143,6 @@ orp %>%
 orp %>%
   select(obec) %>% 
   slice_tail(n = 1)
-
 
 # hodnota ve sloupci 4, na 8. řádku 
 orp[8, 4]
@@ -165,26 +168,27 @@ orp %>%
   select(6:8) %>%
   colnames()
 
-
 # Doplnění názvu číslo orp a název podle hodnoty, příklad "obec == Kozlov"
 orp %>%
   filter(obec == "Kozlov") %>%
   select(cisorp, orp) %>% 
-  # slice(1) %>% #se slice(1) první shoda	Kozlov, jinak všechny 
+  # slice(1) %>% #se slice(1) první shoda	Kozlov, jinak všechny
   print()
 
 
 # ÚKOL 2 --------------------------------------------------------------------
 # TODO Zjisti, z jakého okresu nebo okresů a kraje/ů je obec Píš
 
+
 # pokračování cvičení po ÚKOLU 2 ------------------------------------------
 
 
 # TELEFONNÍ ČÍSLA - 2. dataset ---------------------------------------------------------
-# odstranění mezer urpostřed hodnot
+# odstranění mezer uprostřed hodnot
 # odstranění všech vybraných hodnot
 # zjištění počtu znaků 
 # doplnění konkrétní hodnoty do dosažení zadaného počtu znaků 
+# doplnění hodnot na základě jiné hodnoty
 
 t <- telefony %>% 
   as_tibble() 
@@ -198,11 +202,11 @@ t <- t %>%
          ico_s_doplnenymi_nulami = str_pad(ico_bez_nul, width = 8, side = "left", pad = "0")  # Doplnění nul
 )
 
-
-
 # width = 8: Cílová délka výsledného řetězce.
 # side = "left": Určuje, že chceme přidat znaky na začátek (doleva).
 # pad = "0": Znak, který chceme použít pro doplnění (v tomto případě nula).
+
+00420 765 876 543
 
 # sjendocení telefonních čísel 
 t <- t %>% 
@@ -366,6 +370,7 @@ colnames(s)
 s <- s %>%
   unite(jmeno_prijmeni, jmeno, prijmeni, sep = " ", remove = FALSE)
 
+class(s$datum_narozeni)
 
 s <- s %>%
   mutate(
@@ -390,7 +395,7 @@ print(s, n = Inf, width = Inf)
 glimpse(s)
 
 
-# přiřazování znamení zvěrokruhu, potéje potřeba dataset znovu uložit ------------------------------------------
+# přiřazování znamení zvěrokruhu  ------------------------------------------
 
 # opět je vhodné klíč uložit zvlášť
 znameni_propojeni <- s %>% 
@@ -496,7 +501,6 @@ duplikaty <- get_dupes(s, -id)  # Vynechání sloupce id z kontroly
 # Vytvoření vektoru s ID duplikátů
 id_duplikaty <- unique(duplikaty$id)  # Získání unikátních ID
 
-
 s <- s %>% 
   mutate(across(where(is.character), trimws),  # Aplikace trimws ořezávající mezery na konci a na začátku na všechny character sloupce
     final_skore_celkem = case_when(
@@ -535,16 +539,8 @@ s %>%
   select(id, jmeno, prijmeni, final_skore_celkem) %>% 
   print()
 
-s$percentily
-
-# Nastavení pro zobrazení více desetinných míst
-options(digits = 5)
-
-
-
-
 # ÚKOL 4 --------------------------------------------------------------------
-
+# který student má u skóre třetí nejvyšší percentil
 
 
 # ukládání dat ------------------------------------------------------------
@@ -556,8 +552,6 @@ saveRDS(t, "data/intermediate/telefony_upraveny_dataset_ws_6.rds")
 # jako xlsx nebo csv
 write.xlsx(s, "data/intermediate/studenti_upraveny_dataset_ws_6.xlsx")
 write.csv2(s, "data/intermediate/studenti_upraveny_dataset_ws_6.csv")
-
-
 
 
 # EXTRA TÉMA-------------------------------------------------------------------

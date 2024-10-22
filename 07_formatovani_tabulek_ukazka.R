@@ -14,8 +14,8 @@ library(officer)
 # Načtení balíčků pro tabulky
 library(gt) # oblíběný balíček, dobře funguje s tidyverse, export do png, wordu, html...
 # https://www.youtube.com/watch?v=gh_e6tmjhLA 
-#https://www.youtube.com/watch?v=jptX745mp7M 
-#https://www.youtube.com/watch?v=22YpMXufSvw&list=PLBnFxG6owe1EzCt-QHgLxKzgRY3GvOHuw&index=9
+# https://www.youtube.com/watch?v=jptX745mp7M 
+# https://www.youtube.com/watch?v=22YpMXufSvw&list=PLBnFxG6owe1EzCt-QHgLxKzgRY3GvOHuw&index=9
 # https://jthomasmock.github.io/gtExtras/reference/
 # https://gt.albert-rapp.de/styling
 

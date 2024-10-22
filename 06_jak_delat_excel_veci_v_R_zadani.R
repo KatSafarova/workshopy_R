@@ -206,7 +206,7 @@ t <- t %>%
 # side = "left": Určuje, že chceme přidat znaky na začátek (doleva).
 # pad = "0": Znak, který chceme použít pro doplnění (v tomto případě nula).
 
-00420 765 876 543
+
 
 # sjendocení telefonních čísel 
 t <- t %>% 

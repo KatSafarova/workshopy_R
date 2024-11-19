@@ -1,0 +1,317 @@
+---
+title: "Cvičení R"
+author: "Katka Š."
+date: "`r Sys.Date()`"
+lang: cs    
+format: html
+knitr:
+  opts_chunk:
+     fig.path: obrazky_quarto/
+---
+
+```{r}
+#| label: data
+#| include: false
+library(czso) # balíček pro práci s daty ČSÚ
+library(ggplot2) # grafy
+library(tidyr)
+library(dplyr)
+library(stringr) # práce s textovými proměnnými
+library(openxlsx)
+
+theme_set(
+  theme_classic(base_size = 12) + 
+    theme(
+      plot.title = element_text(size = 16, face = "bold"),   # Nadpis grafu
+      plot.subtitle = element_text(size = 12),              # Podnadpis
+      plot.caption = element_text(size = 12), # Popisek pod grafem
+      axis.title = element_text(size = 14),                 # Názvy os
+      axis.text = element_text(size = 14),                  # Popisky os
+      legend.title = element_text(size = 12),               # Nadpis legendy
+      legend.text = element_text(size = 12)                 # Popisky legendy
+    )
+)
+
+
+
+data <- read.csv("data/input/sldb2021_stav_vek1_pohlavi.csv")
+
+options(scipen = 999) # ne vědecké zobrazení čísel
+
+knitr::opts_chunk$set(
+    out.width = "90%", # kolik prostoru vyplňují grafy/obrázky v html 
+    fig.width = 9,    
+    fig.asp = 0.75,   
+    fig.align = "center" 
+)
+
+# Použité číselníky pro území
+# 
+# <!-- 97 Stát -->
+# 
+# <!-- 99 Region soudržnosti -->
+# 
+# <!-- 100 Kraj -->
+
+```
+
+```{r}
+#| label: vypocty
+#| include: false
+unique(data$stav_txt)
+n_distinct(data$uzemi_kod)
+n_distinct(data$uzemi_txt)
+
+# věk od 18 a přepsání prázdných hodnot pohlavi_txt na "Celkem"
+data <- data %>%
+  mutate(vek = str_sub(vek_kod, -2, -1)) |>  # správně by se mělo rozlišit ještě 99 (končící 099) a 100 a více (končící 999)
+  filter(vek > 17) |> 
+  group_by(uzemi_kod) %>% # vždy lepší seskupovat podle kódu, ty jsou na rozdíl od názvů unikátní 
+  mutate(pohlavi_txt = if_else(pohlavi_txt == "", "Celkem", pohlavi_txt))
+
+# souhrnná data pro kraje
+souhrn_kraje <- data %>%
+  filter(uzemi_cis == 100, # jen kraje
+         !stav_txt %in% c("Celkem", "Nezjištěno"),
+         pohlavi_txt == "Celkem") %>% # jen celkové hodnoty
+  select(hodnota, stav_txt, uzemi_txt, uzemi_kod) %>%
+  group_by(uzemi_kod, uzemi_txt, stav_txt) %>% # Seskupení podle kraje a stavu
+  summarise(hodnota = sum(hodnota), .groups = "drop") %>% # Součet hodnot pro jednotlivé kraje a stavy
+  group_by(uzemi_kod) %>% # Opětovné seskupení pro výpočet procent
+  mutate(procent = round(hodnota / sum(hodnota) * 100, 3)) %>% # Výpočet procent a zaokrouhlení
+  ungroup() # Odstranění skupin
+
+# souhrnná data pro kraje zvlášť pro muže a ženy
+souhrn_kraje_pohlavi <- data %>%
+  filter(uzemi_cis == 100,
+         !stav_txt %in% c("Celkem", "Nezjištěno"),
+         pohlavi_txt != "Celkem") %>% # mimo celkové hodnoty
+  select(hodnota, stav_txt, uzemi_txt, uzemi_kod, pohlavi_txt) %>%
+  group_by(uzemi_kod, uzemi_txt, stav_txt, pohlavi_txt) %>% # Seskupení podle kraje a stavu
+  summarise(hodnota = sum(hodnota), .groups = "drop") %>% # Součet hodnot pro jednotlivé kraje a stavy
+  group_by(uzemi_kod, pohlavi_txt) %>% # Opětovné seskupení pro výpočet procent
+  mutate(procent = round(hodnota / sum(hodnota) * 100, 3)) %>% # Výpočet procent a zaokrouhlení
+  ungroup() # Odstranění skupin
+
+# souhrnná data pro ČR zvlášť pro muže a ženy
+souhrn_cr <- data %>%
+  filter(uzemi_cis == 97, # data za ČR
+         !stav_txt %in% c("Celkem", "Nezjištěno")) %>% # Vyloučení záznamů "Celkem" a "Nezjištěno"
+  group_by(stav_txt) %>% # Seskupení podle rodinného stavu
+  summarise(hodnota = sum(hodnota), .groups = "drop") %>% # Součet hodnot pro každý stav
+  mutate(procent = round(hodnota / sum(hodnota) * 100, 3)) # Výpočet procent v rámci skupiny a zaokrouhlení na 1 desetinné místo
+
+
+# souhrnná data pro ČR zvlášť pro muže a ženy
+souhrn_cr_pohlavi <- data %>%
+  filter(uzemi_cis == 97,
+         !stav_txt %in% c("Celkem", "Nezjištěno"),
+         pohlavi_txt != "Celkem") %>% 
+  group_by(stav_txt, pohlavi_txt) %>% # Seskupení podle rodinného stavu a pohlaví 
+  summarise(hodnota = sum(hodnota), .groups = "drop") %>% # Součet hodnot pro každý stav
+  group_by(pohlavi_txt) %>% # Seskupení podle kraje a stavu
+  mutate(procent = round(hodnota / sum(hodnota) * 100, 3)) %>% # Výpočet procent a zaokrouhlení
+  ungroup() # Odstranění skup
+  
+
+# Uložení celostátního průměru pro "Rozvedený/rozvedená"
+cr_podil_rozvedenych <- souhrn_cr %>%
+  filter(stav_txt == "Rozvedený/rozvedená") %>%
+  pull(procent)
+
+# Uložení celostátního průměru pro "Rozvedený/rozvedená"
+cr_podil_regp <- souhrn_cr %>%
+  filter(stav_txt == "Registrované partnerství trvající") %>%
+  pull(procent)
+
+# Výpočet celkového počtu obyvatel v každém kraji
+celkova_populace <- souhrn_kraje %>%
+  group_by(uzemi_txt, uzemi_kod) %>%
+  summarise(celkem_obyvatel = sum(hodnota), .groups = "drop") |> 
+  select(-uzemi_txt) # dávám pryč, aby se mi při napojení nedublovalo 
+
+# podíly rozvedených v krajích 
+kraje_podil_rozvedenych <- souhrn_kraje %>%
+  filter(stav_txt == "Rozvedený/rozvedená") %>%
+  select(uzemi_txt, uzemi_kod, pocet_rozvedenych = hodnota, procent_rozvedenych = procent) %>%
+  left_join(celkova_populace, by = "uzemi_kod") %>% # Přidání celkové populace
+  mutate(
+    rozdil_oproti_prumeru_cr = procent_rozvedenych - cr_podil_rozvedenych # Výpočet rozdílu oproti průměru ČR
+  ) %>%
+  arrange(desc(procent_rozvedenych)) %>% # Seřadit podle podílu
+  relocate(uzemi_kod, .after = uzemi_txt) |> 
+  relocate(rozdil_oproti_prumeru_cr, .after = procent_rozvedenych) |> 
+  relocate(celkem_obyvatel, .before = pocet_rozvedenych)
+
+# v jakých krajích žije největší podíl registrovaných partnerů
+kraje_podil_regp <- souhrn_kraje %>%
+  filter(stav_txt == "Registrované partnerství trvající") %>%
+  select(uzemi_txt, uzemi_kod, pocet_regp = hodnota, procent_regp = procent) %>%
+  left_join(celkova_populace, by = "uzemi_kod") %>% # Přidání celkové populace
+  mutate(
+    rozdil_oproti_prumeru_cr = procent_regp - cr_podil_regp # Výpočet rozdílu oproti průměru ČR
+  ) %>%
+  arrange(desc(procent_regp)) %>% # Seřadit podle podílu
+  relocate(uzemi_kod, .after = uzemi_txt) |> 
+  relocate(rozdil_oproti_prumeru_cr, .after = procent_regp) |> 
+  relocate(celkem_obyvatel, .before = pocet_regp)
+
+# v jakých krajích žije největší podíl registrovaných partnerů mužů a žen
+kraje_podil_regp_pohlavi <- souhrn_kraje_pohlavi %>%
+  filter(stav_txt == "Registrované partnerství trvající") %>%
+  select(uzemi_txt, uzemi_kod, pocet_regp = hodnota, procent_regp = procent, pohlavi_txt) %>%
+  filter(pohlavi_txt != "Celkem") |> 
+  group_by(uzemi_txt, uzemi_kod, pohlavi_txt) %>% # Seskupení podle kraje a stavu
+  summarise(pocet_regp = sum(pocet_regp), .groups = "drop") %>% # Součet hodnot pro každý stav
+  group_by(pohlavi_txt) %>% # Seskupení podle kraje a stavu
+  mutate(procent_regp = round(pocet_regp / sum(pocet_regp) * 100, 3)) %>% # Výpočet procent a zaokrouhlení
+  ungroup() # Odstranění skup
+
+sum(kraje_podil_regp_pohlavi$procent_regp)
+
+# Výpočet podílu registrovaných partnerství podle pohlaví z celku 
+cr_regp <- souhrn_cr_pohlavi %>%
+  filter(stav_txt == "Registrované partnerství trvající") |> 
+  group_by(pohlavi_txt) %>%
+  summarise(hodnota = sum(hodnota), .groups = "drop") %>%
+  mutate(procent = hodnota / sum(hodnota) * 100)
+
+sum(cr_regp$procent)
+
+cr_nezjisteno <- data %>%
+  filter(uzemi_cis == 97, # data za ČR
+         stav_txt == "Nezjištěno") |> 
+  nrow()
+
+cr_celkem_resp <- data %>%
+  filter(uzemi_cis == 97, 
+         pohlavi_txt == "Celkem") |> 
+  select(hodnota) |> 
+  summarise(hodnota = sum(hodnota)) |> 
+  pull()
+
+cr_celkem_resp <- format(cr_celkem_resp, big.mark = " ", scientific = FALSE)
+
+```
+# Úvod 
+
+V tomto reportu jsou vybrané grafy k rodinnému stavu uváděnému osobami od 18 let ve *Sčítání lidu, domů a bytů v roce 2021*. Těchto osob se šetření zúčastnilo **`r cr_celkem_resp`**. Více informací naleznete na [stránkách ČSÚ](https://csu.gov.cz/scitani-2021).
+
+Respondenti uváděli následující stavy:
+
+```{r}
+#| label: pocty
+#| echo: false
+
+# Unikátní hodnoty bez "Nezjištěno"
+unique_values <- setdiff(unique(data$stav_txt), "Nezjištěno")
+
+# Generování odrážek s korektním odsazením
+cat(paste0("- ", unique_values, "\n"))
+```
+
+U malé části respondentů, konkrétně u *`r cr_nezjisteno`* osob se nepovedlo rodinný stav zjistit.
+
+# Grafy
+## Graf 1
+
+```{r}
+#| echo: false
+#| label: kraje_rozvedeni
+#| fig.asp: 0.9
+
+
+# Vytvoření sloupcového grafu
+graf_rozvedeni <- kraje_podil_rozvedenych %>%
+  ggplot(aes(x = reorder(uzemi_txt, -procent_rozvedenych), y = procent_rozvedenych)) +
+  geom_col(color = "black", fill = "chocolate") + 
+  geom_text(aes(label = scales::percent(procent_rozvedenych / 100, accuracy = 0.1, decimal.mark = ",")),
+            vjust = -0.5, size = 4) + 
+  labs(
+    title = "Podíl rozvedených obyvatel podle krajů",
+    x = "Kraj",
+    y = "Podíl rozvedených obyvatel kraje v %",
+    caption = "ČSÚ: Sčítání lidu v roce 2021, pouze populace 18+."
+  ) +
+  scale_y_continuous(limits = c(0, 20))  +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 12), # Natočení textu osy x
+    panel.grid = element_blank() # Odstranění mřížky
+  )
+
+graf_rozvedeni
+```
+
+## Ukázka kódu a graf 2
+
+Takto vypadá kód, který vykreslí následující graf.
+
+```{r}
+#| label: kraje_regp
+#| fig.asp: 0.9
+
+# Vytvoření sloupcového grafu
+kraj_regp <- kraje_podil_regp_pohlavi %>%
+  ggplot(aes(x = reorder(uzemi_txt, -pocet_regp), y = pocet_regp, fill = pohlavi_txt)) +
+  geom_col(color = "black", position = position_dodge(width = 0.9)) + 
+  geom_text(aes(label = pocet_regp,
+                group = pohlavi_txt),
+            position = position_dodge(width = 0.8), vjust = -0.5, size = 3.5) +
+  labs(
+    title = "Počty mužů a žen v registrovaném partnerství podle krajů",
+    x = "Kraj",
+    y = "Počet obyvatel kraje v registrovaném partnerství",
+    fill = "Pohlaví",
+    caption = "ČSÚ: Sčítání lidu v roce 2021, pouze populace 18+."
+  ) +
+  scale_y_continuous(limits = c(0, 1200)) +
+  scale_fill_manual(values = c("muž" = "blue", "žena" = "pink")) + # Přizpůsobení barev pro pohlaví
+ 
+  theme(
+    legend.position = "top",
+     axis.text.x = element_text(angle = 60, hjust = 1, size = 12),
+    panel.grid = element_blank() # Zajištění, že mřížka nebude zobrazena
+  )
+
+kraj_regp
+```
+
+## Graf 3
+
+```{r}
+#| label: cr_regp
+#| echo: false
+#| fig.asp: 0.3
+
+# Vytvoření horizontálního skládaného grafu
+graf_regp_pohlavi <- cr_regp %>%
+  ggplot(aes(x = "", y = procent, fill = pohlavi_txt)) +
+  geom_bar(stat = "identity", width = 0.2, position = "stack") +
+  coord_flip() + # Otočení grafu na horizontální
+  geom_text(aes(label = paste0(gsub("\\.", ",", round(procent, 1)), " %")),           position = position_stack(vjust = 0.5), size = 4) +
+
+  labs(
+    title = "Podíl registrovaných partnerství uzavřených muži a ženami",
+    x = NULL,
+    y = "Podíl (%)",
+    fill = "Pohlaví",
+    caption = "ČSÚ: Sčítání lidu v roce 2021, pouze populace 18+."
+  ) +
+  scale_fill_manual(values = c("muž" = "lightblue", "žena" = "pink")) + # Barevné odlišení
+  theme_minimal() + 
+  theme(
+    legend.position = "top",
+    legend.margin = margin(t = 0, r = 0, b = -70, l = 0), # Negativní horní mezera
+    axis.ticks.x = element_blank(),
+    panel.grid = element_blank(),
+    plot.title = element_text(size =16),
+    plot.caption = element_text(size = 12),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 12),
+    axis.title.x = element_text(margin = margin(t = -70, r = 0, b = 0, l = 0), size = 14), # Zmenšení mezery k osy
+    axis.text.x = element_blank() # Posun textu popisků blíže k ose
+   )
+
+graf_regp_pohlavi
+
+```

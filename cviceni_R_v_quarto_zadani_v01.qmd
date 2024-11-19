@@ -1,0 +1,66 @@
+# Zadání cvičení 
+1. udělej hlavičku quarto dokumentu, rozhodni se, jestli chceš výstup jako html nebo pdf (vyzkoušej si postupně obojí, můžes si pomocí 
+knitr:
+  opts_chunk:
+     fig.path: nazev_slozky/ nastavit, kam se ti vytvořené grafy ukladaji - složku musíš vytvořit)
+2. načti si data níže 
+3. pracuj zde v quarto dokument - klávesová zkratka pro nový chunk (chunk je část níže začínající na ```{r} ) Ctrl + Alt + I
+4. vyfiltruj populaci 18+ 
+5. zjisti, jaký podíl lidí je v jednotlivých krajích rozvedených a nakolik se to liší oproti průměru ČR - udělej k podílům v krajích sloupcový graf 
+6. zjisti, kolik je v jednotlivých krajích lidí v registrovaných partnerstvích, a jak se liší počty mužů a žen - udělej k tomu sloupcový graf  
+* pozor na to, pro jaký region se data vztahují - viz uzemi_cis
+8. vyrenderuj si report, použij u různých chunků různá nastavení v tom, co a jak se zobrazuje (jestli je vidět i kód, nebo jen výstupy, nebo obojí apod.)
+9. doplň pár vět textu - použij nádpisy úrovně 1 a 2, tučné písmo, kurzívu, seznam s odrážkami 
+10. doplň do textu inline syntax, aby se tam nějaká část načítala automaticky - například počet respondentů, nebo průměr nebo medián nějaké hodnoty. 
+
+Případně si vyfiltruj a analyzuj jiné rodinné stavy nebo věkové skupiny, které tě zajímají. Je to jedno, ale agreguj přitom data na úrovni krajů nebo regionů soudržnosti. 
+
+
+```{r}
+#| label: data
+#| include: false
+library(czso) # balíček pro práci s daty ČSÚ
+library(ggplot2) # grafy
+library(tidyr)
+library(dplyr)
+library(stringr) # práce s textovými proměnnými
+library(openxlsx)
+
+# tento theme se aplikuje všude, můžeš si upravit styl i dílčí nastavení 
+theme_set(
+  theme_classic(base_size = 12) + 
+    theme(
+      plot.title = element_text(size = 16, face = "bold"),   # Nadpis grafu
+      plot.subtitle = element_text(size = 12),              # Podnadpis
+      plot.caption = element_text(size = 12), # Popisek pod grafem
+      axis.title = element_text(size = 14),                 # Názvy os
+      axis.text = element_text(size = 14),                  # Popisky os
+      legend.title = element_text(size = 12),               # Nadpis legendy
+      legend.text = element_text(size = 12)                 # Popisky legendy
+    )
+)
+
+
+data <- read.csv("data/input/sldb2021_stav_vek1_pohlavi.csv")
+
+options(scipen = 999) # ne vědecké zobrazení čísel
+
+# nastavení šířky grafů
+knitr::opts_chunk$set(
+    out.width = "90%", # kolik prostoru vyplňují grafy/obrázky v html 
+    fig.width = 9,    
+    fig.asp = 0.75,   
+    fig.align = "center" 
+)
+
+# Použité číselníky pro území viz uzemi_cis
+# 
+# <!-- 97 Stát -->
+# 
+# <!-- 99 Region soudržnosti -->
+# 
+# <!-- 100 Kraj -->
+
+```
+
+

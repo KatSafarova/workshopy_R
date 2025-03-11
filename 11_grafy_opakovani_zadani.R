@@ -10,22 +10,26 @@ library(glue) # formátování textových řetězců
 library(scales) # funkce pro formátování čísel a dalších hodnot
 
 
-# instalace fontů - dnes s nimi nepracujeme
+# instalace fontů - dnes s nimi nepracujeme, ale vhodné když chceme jiné než základní fonty
 # install.packages("extrafont")
 # library(extrafont)
 # font_import()  # Toto může chvíli trvat
 # loadfonts(device = "win")  # Načte fonty pro Windows
 
-# více o ggplotu - učební zdroje 
+# více o ggplotu - doporučené učební zdroje 
+# https://rstudio.github.io/cheatsheets/html/data-visualization.html
 # https://albert-rapp.de/ggplot-series.html
 # https://www.youtube.com/watch?v=IWXcw6NHM6E&list=PLBnFxG6owe1HRvUL6A5QNF_8ujP8NdLMc 
+# https://r-graph-gallery.com/
 # https://sociology-fa-cu.github.io/uvod-do-r-kniha/obsah-grafu.html
 # https://www.youtube.com/watch?v=qnw1xDnt_Ec 
 # https://petrbouchal.xyz/eval2020/ 
 
 # načtení dat  -------------------------------------------------------------
-
+# pokud se něco nenačítá, je potřeba stáhnout si všechny soubory odsud a přistupovat do celé složky/repozitáře přes soubor typu R project workshopy_R
 d <- readRDS("data/processed/doplneny_dataset_opakovani_tidyverse.rds")
+
+colnames(d)
 
 # připojení čísleníků s právnickými formami pro úkol ----------------------
 
@@ -36,7 +40,7 @@ c_pr_forma_org <- c_pr_forma_org %>%
          pr_forma_org_res = text)
 
 d <- d %>%
-  left_join(c_pr_forma_org, by = c("forma" ="pr_forma_org_kod_res"))
+  left_join(c_pr_forma_org, by = c("forma" = "pr_forma_org_kod_res"))
 
 tabyl(d$pr_forma_org_res)
 
@@ -82,6 +86,7 @@ ggplot(data = d, aes(x = rok_vzniku))
 ggplot(data = d, aes(x = rok_vzniku)) +
   geom_bar()
 
+
 ggplot(data = d, aes(y = pocet, x = rok_vzniku))
 
 d_pocty <- d |> 
@@ -95,7 +100,7 @@ d_pocty_kat <- d |>
   group_by(rok_vzniku_kat) |> 
   summarise(pocet = n())
 
-ggplot(data = d_pocty, aes(y = pocet, x = rok_vzniku)) + 
+ggplot(d_pocty, aes(y = pocet, x = rok_vzniku)) + 
   geom_col()
 
 # název dataframu může být před funkcí ggplot, šikovnější na různé filtrování, můžeme také data transoformovat a pak přímo navázat ggplotem
@@ -106,9 +111,9 @@ ggplot(aes(y = pocet, x = rok_vzniku)) +
 
 # geom_col + geom_line
 ggplot(data = d_pocty, aes(y = pocet, x = rok_vzniku)) + 
-  geom_col(fill = "darkblue", color = "orange") +
-  geom_line(aes(group = 1), color = "red", size = 1, alpha = 0.4) +  # křivka, barva, velikost/tloušťka, průhlednost (0 neviditelná, 1 nejsytější)
-  geom_point(color = "darkred", size = 2, alpha = 0.9, shape = 16) +  
+  geom_col(fill = "#34ebc3", color = "orange") +
+  geom_line(aes(group = 1), color = "red", linewidth = 1, alpha = 0.4) +  # křivka, barva, velikost/tloušťka, průhlednost (0 neviditelná, 1 nejsytější)
+  geom_point(color = "darkred", size = 2, alpha = 0.9, shape = 16) +
   labs(title = "Počet vzniklých ekonomických subjektů od roku 1990",
        x = "Rok vzniku ekonomického subjektu",
        y = NULL,
@@ -125,6 +130,17 @@ ggplot(data = d_pocty, aes(y = pocet, x = rok_vzniku)) +
 
 
 
+
+
+
+
+
+
+
+
+
+
+
 # Aesthetic specifications - linetype, shapes apod.
 # https://ggplot2.tidyverse.org/articles/ggplot2-specs.html 
 
@@ -132,7 +148,7 @@ ggplot(data = d_pocty, aes(y = pocet, x = rok_vzniku)) +
 ggplot(data = d_pocty, aes(y = pocet, x = rok_vzniku, fill = rok_vzniku == 2025)) + 
   geom_col() +
   geom_line(aes(group = 1), color = "red", size = 1, alpha = 0.4) +  
-  geom_point(color = "darkred", size = 2, alpha = 0.9, shape = 16) +  
+  geom_point(color = "darkred", size = 2, alpha = 0.9, shape = 2) +  
   labs(title = "Počet vzniklých ekonomických subjektů od roku 1990",
        x = "Rok vzniku ekonomického subjektu",
        y = NULL,
@@ -142,7 +158,7 @@ ggplot(data = d_pocty, aes(y = pocet, x = rok_vzniku, fill = rok_vzniku == 2025)
   theme_minimal() +
   theme(legend.position = "none")  # Skrytí legendy
 
-# přidání texti s annotate a šipky 
+# přidání textu a šipky pomocí annotate 
 ggplot(data = d_pocty, aes(y = pocet, x = as.numeric(rok_vzniku), fill = rok_vzniku == 2025)) + 
   geom_col() +
   geom_line(aes(group = 1), color = "red", size = 1, alpha = 0.4) +  
@@ -153,7 +169,6 @@ ggplot(data = d_pocty, aes(y = pocet, x = as.numeric(rok_vzniku), fill = rok_vzn
        caption = "Data k 31. 1. 2025, pouze vzorek 10 000 ekonomických subjektů.") +
   scale_x_continuous(breaks = seq(1990, 2025, by = 5)) +
   scale_fill_manual(values = c("TRUE" = "blue", "FALSE" = "grey")) +  # 2025 modře, ostatní šedě
-  theme_minimal() +
   annotate("segment", x = 2020, xend = 2020, y = max(d_pocty$pocet) * 0.6, yend = max(d_pocty$pocet) * 0.9, 
            arrow = arrow(length = unit(0.2, "cm")), color = "black") +
   annotate("text", x = 2020, y = max(d_pocty$pocet) * 0.95, label = "Významný rok", color = "black", size = 4, fontface = "bold") +
@@ -190,8 +205,10 @@ theme_set(
 min_rok <- min(d$rok_vzniku, na.rm = TRUE)
 subjektu_pred_1990 <- d |> filter(rok_vzniku < 1990) |> nrow()
 
+class(d$rok_vzniku_kat)
+levels(d$rok_vzniku_kat)
 
-# změna pořadí leveů faktorů s fct_reorder, funguje i samotné reorder
+# změna pořadí leveů faktorů s fct_reorder, funguje i samotné reorder, zakomentované geom_text jsou alternativy jak docílit tisícovek s mezerami pomocí jiných balíčků 
 d_pocty_kat |> 
   drop_na(rok_vzniku_kat)|> 
   mutate(rok_vzniku_kat = fct_reorder(rok_vzniku_kat, -pocet)) |> # změna faktorů podle pocet sestupně
@@ -225,7 +242,7 @@ d_pocty_kat |>
   drop_na(rok_vzniku_kat)|> 
   mutate(rok_vzniku_kat = fct_reorder(rok_vzniku_kat, -pocet)) |> # změna faktorů podle pocet sestupně
   ggplot(aes(y = pocet, x = rok_vzniku_kat)) +
-  geom_col(fill = modra, alpha = 0.8, color = "black", linewidth = 1.5, linetype = "dashed") +
+  geom_col(fill = modra, alpha = 0.3, color = "black", linewidth = 1.5, linetype = "dashed") +
   geom_text(aes(label = label_comma(big.mark = " ")(pocet)), vjust = -0.5, size = 4) +
   labs(title = str_wrap(glue("Počet vzniklých ekonomických subjektů od roku {min_rok} podle období vzniku"), width = 50),
        x = "Období vzniku ekonomického subjektu",
@@ -239,7 +256,7 @@ d_pocty_kat |>
 
 # ukládání ----------------------------------------------------------------
 # optimální šířka pro word, můžeme uložit buď poslední graf nebo pojmenovaný konkrétní graf
-ggsave(paste0("grafy/geom_col_ukazka.png"),  plot = last_plot(), bg= "white", height = 9, width = 15.98, unit = "cm", dpi = 300)
+ggsave("grafy/geom_col_ukazka.png",  plot = last_plot(), bg= "white", height = 9, width = 15.98, unit = "cm", dpi = 300)
 
 
 # zobrazení více skupin zde podle počtu zaměstnanců-------------------------------------------------------------
@@ -323,7 +340,7 @@ d_pocty_kat_velikost |>
     strip.text = element_text(size = 12),  # Velikost textu pro facety
     plot.title = element_text(hjust = 0.5, size = 16, face = "bold")
   ) +
-  facet_wrap(~ pocet_zam_3kat, scales = "free_y")  # scales = "free_y" pokud nechceme jednotnou osu y, podobně se dá aplikovat i na x (zde nedává smysl)
+  facet_wrap(~ pocet_zam_3kat, scales = "free_y")  #  pokud nechceme jednotnou osu y použijeme scales = "free_y", podobně se dá aplikovat i na x (zde nedává smysl), pokud chceme jednotné osy neuvádíme nic
 
 
 
@@ -357,7 +374,7 @@ hist(d$rok_vzniku)
 d %>% 
   drop_na(rok_vzniku) %>% 
   ggplot(aes(x = rok_vzniku)) + 
-  geom_histogram(binwidth = 1, fill = "turquoise", color = "black") + 
+  geom_histogram(binwidth = 5, fill = "turquoise", color = "black") + 
   labs(title = str_wrap(glue("Počet vzniklých ekonomických subjektů od roku {min_rok} podle období vzniku"), width = 50),
        x = "Období vzniku ekonomického subjektu",
        y = NULL,
@@ -471,7 +488,7 @@ ggplot(data, aes(x = question, y = percent, fill = answer)) +
     fill = ""
   ) +
   scale_color_manual(
-    values = c("Určitě souhlasím" = "white", "Spíše souhlasím" = "black", "Nevím" = "black", "Spíše nesouhlasím" = "black", "Určitě nesouhlasím" = "white"), 
+    values = c("Určitě souhlasím" = "white",  "Spíše souhlasím" = "black", "Nevím" = "black","Spíše nesouhlasím" = "black", "Určitě nesouhlasím" = "white"), 
     guide = "none") + # Skrytí legendy pro barvy textu +
   guides(fill = guide_legend(reverse = TRUE)) + # často je potřeba legendu převrátit
   theme(axis.ticks = element_blank(), # Skrytí čárek na osách u hodnot 
@@ -486,6 +503,7 @@ ggplot(data, aes(x = question, y = percent, fill = answer)) +
 
 # TODO zkus otočit pořadí barev v grafu i v legendě
 
+
 # Uložení grafu
 ggsave("grafy/likertovky.png", plot = last_plot(), bg = "white", height = 6, width = 15.98, unit = "cm", dpi = 300)
 
@@ -496,7 +514,16 @@ ggsave("grafy/likertovky.png", plot = last_plot(), bg = "white", height = 6, wid
 # TODO ÚKOL
 # vyfiltruj okresy, kde je více než 100 subjektů
 # a zobraz je sloupcovým grafem 
-# potom přidej do grafu 2 nejčastější formy (v našem vzorku) podle pr_forma_org_res "Společnost s ručením omezeným" a "Fyzická osoba podnikající dle živnostenského zákona", pro lepší zobrazení v grafu názvy zkrať 
+# potom přidej do grafu 2 nejčastější právnické formy (v našem vzorku) podle pr_forma_org_res "Společnost s ručením omezeným" a "Fyzická osoba podnikající dle živnostenského zákona", pro lepší zobrazení v grafu názvy zkrať 
+
+
+
+
+
+
+
+
+
 
 
 # Vaše tipy k tvorbě grafů, řazení, práci s textem?
